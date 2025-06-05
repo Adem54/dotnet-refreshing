@@ -1,0 +1,31 @@
+GET http://localhost:5227/games
+
+###
+GET http://localhost:5227/games/7
+
+
+###
+POST http://localhost:5227/games 
+Content-Type: application/json
+
+{
+  "name": "Iron Dome",
+  "genre": "Strategy",
+  "price": 34.50,
+  "releaseDate": "2021-09-07"
+}
+
+
+###
+PUT http://localhost:5227/games/5 
+Content-Type: application/json
+
+{
+  "name": "Updated Name",
+  "genre": "RPG",
+  "price": 59.99,
+  "releaseDate": "2024-12-01"
+}
+
+
+
