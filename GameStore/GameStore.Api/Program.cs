@@ -1,4 +1,5 @@
 using GameStore.Api.Dtos;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 var builder = WebApplication.CreateBuilder(args);
 //instance of webapplication...as host..host our application
@@ -51,6 +52,7 @@ app.MapPost("/games", (CreateGameDto newGame) =>
 
 //put isleminde id yine kullanicidan endpoint icinde gelecek, ama endpoint url icinde gelecek..ama updatedData ise payload-request body ile gelecek bunlari karistirmayalim..
 //PUT /games
+//replace the object completely that's the purpose of put
 app.MapPut("/games/{id}", (int id, UpdateGameDto updateGame) =>
 {
     //What happend if we don't find the game
@@ -61,7 +63,14 @@ app.MapPut("/games/{id}", (int id, UpdateGameDto updateGame) =>
 
 });
 
+app.MapDelete("/games/{id}", (int id) =>
+{
+    int index = games.FindIndex(g => g.Id == id);
+    games.RemoveAt(index);
+    return Results.NoContent();  
+});
 
+app.Run();
 
 /*
 🔍 What is Results.CreatedAtRoute(...)?
@@ -81,8 +90,6 @@ Payload = The actual data you send or receive in the body of an HTTP request or 
 //Encapsules data in a simple and standardized format that can easily transmitted across different layers of application
 
 //You can do bunch of things by using app. member operator..so..
-
-app.Run();
 
 /*  GameStore.Api.csproj   dosyasi nedir, proje dosyasi diye adlandirdimgiz dosya nedir ne ise yarar
 This file defines some of the information
