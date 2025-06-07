@@ -12,6 +12,4 @@ namespace GameStore.Api.Dtos
         decimal Price,
         DateOnly ReleaseDate
     );
-     
-       
 }

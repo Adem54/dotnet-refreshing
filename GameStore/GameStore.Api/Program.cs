@@ -30,14 +30,24 @@ var games = new List<GameDto>
 app.MapGet("/games", () => games);
 
 //Get /games/1
-app.MapGet("/games/{id}", (int id) => games.Find(g=>g.Id == id))
-    .WithName(GetGameEndpointName);//Bu sekilde bu endpointe isim verebiliyrouz...yani asinda ayni ecpontin methodunun ismi gibi...
+app.MapGet("/games/{id}", (int id) =>
+{
+    GameDto? game = games.Find(g => g.Id == id);
+    //it is very important to return always same type IResult
+    return game is null
+     ? Results.NotFound("id is not found")
+     : Results.Ok(game);
+})
+    .WithName(GetGameEndpointName)
+    .Produces<GameDto>(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status404NotFound);
+
+//Bu sekilde bu endpointe isim verebiliyrouz...yani asinda ayni ecpontin methodunun ismi gibi...
 
 
 //Post /games
 app.MapPost("/games", (CreateGameDto newGame) =>
 {
-
     GameDto game = new(
         games.Count + 1,
         newGame.Name,
@@ -57,40 +67,51 @@ app.MapPut("/games/{id}", (int id, UpdateGameDto updateGame) =>
 {
     //What happend if we don't find the game
     int index = games.FindIndex(g => g.Id == id);
-    GameDto game = new(id, updateGame.Name, updateGame.Genre, updateGame.Price, updateGame.ReleaseDate);
-    games[index] = game;
-    return Results.NoContent();
+    if (index == -1)
+    {
+        return Results.NotFound($"id:{id} is not found");
+    } else
+    {
+        GameDto game = new(id, updateGame.Name, updateGame.Genre, updateGame.Price, updateGame.ReleaseDate);
+        games[index] = game;
+        return Results.Ok();
+    }
 
-});
+})
+.Produces(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status404NotFound);
 
+//DELETE /games/1
 app.MapDelete("/games/{id}", (int id) =>
 {
-    int index = games.FindIndex(g => g.Id == id);
-    games.RemoveAt(index);
-    return Results.NoContent();  
-});
+    GameDto? game = games.Find(g => g.Id == id);
+    if (game is not null)
+    {
+        games.RemoveAll(g => g.Id == id);
+        return Results.Ok("data is deleted");
+    }
+    else
+    {
+        return Results.NotFound($"id: {id} is not found!");
+    }
+})
+.Produces(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status404NotFound);
 
 app.Run();
 
 /*
 🔍 What is Results.CreatedAtRoute(...)?
 It’s a built-in helper method in .NET Minimal APIs that returns:
-
 ✅ HTTP status code 201 Created
-
 ✅ A Location header pointing to a route that can retrieve the newly created object (e.g., by ID)
-
 ✅ The created object itself in the response body(Payload)
-
 What is paylod:
 Payload = The actual data you send or receive in the body of an HTTP request or response.
 */
-
 //Data Transfer Object-DTO..is an object that carries dta between process or application 
 //Encapsules data in a simple and standardized format that can easily transmitted across different layers of application
-
 //You can do bunch of things by using app. member operator..so..
-
 /*  GameStore.Api.csproj   dosyasi nedir, proje dosyasi diye adlandirdimgiz dosya nedir ne ise yarar
 This file defines some of the information
 */

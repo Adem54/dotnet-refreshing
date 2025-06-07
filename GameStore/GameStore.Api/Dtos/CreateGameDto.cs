@@ -13,6 +13,5 @@ namespace GameStore.Api.Dtos
         decimal Price,
         DateOnly ReleaseDate
     );
-     
-        //we onlycare about the date part not time..for this reason we chose DateOnly
+    //we onlycare about the date part not time..for this reason we chose DateOnly
 }
