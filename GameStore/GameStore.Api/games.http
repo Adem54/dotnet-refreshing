@@ -1,7 +1,7 @@
 GET http://localhost:5227/games
 
 ###
-GET http://localhost:5227/games/7
+GET http://localhost:5227/games/1
 
 
 ###
@@ -11,7 +11,7 @@ Content-Type: application/json
 {
   "name": "Iron Dome",
   "genre": "Strategy",
-  "price": 34.50,
+  "price": 0,
   "releaseDate": "2021-09-07"
 }
 
@@ -28,7 +28,7 @@ Content-Type: application/json
 }
 
 ### 
-DELETE http://localhost:5227/games/2
+DELETE http://localhost:5227/games/1
 Content-Type: application/json
 
 
