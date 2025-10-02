@@ -1,12 +1,123 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|c:\\users\\hp35\\desktop\\projects\\dotnet\\dotnet-refreshing\\gamestore\\gamestore.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|solutionrelative:gamestore.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|c:\\users\\hp35\\desktop\\projects\\dotnet\\dotnet-refreshing\\gamestore\\gamestore.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|solutionrelative:gamestore.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|c:\\users\\hp35\\desktop\\projects\\dotnet\\dotnet-refreshing\\gamestore\\gamestore.api\\games.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|solutionrelative:gamestore.api\\games.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|c:\\users\\hp35\\desktop\\projects\\dotnet\\dotnet-refreshing\\gamestore\\gamestore.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|solutionrelative:gamestore.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|c:\\users\\hp35\\desktop\\projects\\dotnet\\dotnet-refreshing\\gamestore\\gamestore.api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|solutionrelative:gamestore.api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|c:\\users\\hp35\\desktop\\projects\\dotnet\\dotnet-refreshing\\gamestore\\gamestore.api\\gamestore.api.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{4F3BC6D5-C353-4D66-A1D5-39A81436592B}|GameStore.Api\\GameStore.Api.csproj|solutionrelative:gamestore.api\\gamestore.api.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "GameStore.Api\\appsettings.Development.json",
+              "ToolTip": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\appsettings.Development.json",
+              "RelativeToolTip": "GameStore.Api\\appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-10-02T21:15:03.391Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\appsettings.json",
+              "RelativeDocumentMoniker": "GameStore.Api\\appsettings.json",
+              "ToolTip": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\appsettings.json",
+              "RelativeToolTip": "GameStore.Api\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-10-02T21:14:58.987Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "games.http",
+              "DocumentMoniker": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\games.http",
+              "RelativeDocumentMoniker": "GameStore.Api\\games.http",
+              "ToolTip": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\games.http",
+              "RelativeToolTip": "GameStore.Api\\games.http",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2025-09-29T21:33:58.955Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\Program.cs",
+              "RelativeDocumentMoniker": "GameStore.Api\\Program.cs",
+              "ToolTip": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\Program.cs",
+              "RelativeToolTip": "GameStore.Api\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-29T19:56:24.953Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "GameStore.Api",
+              "DocumentMoniker": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\GameStore.Api.csproj",
+              "RelativeDocumentMoniker": "GameStore.Api\\GameStore.Api.csproj",
+              "ToolTip": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\GameStore.Api.csproj",
+              "RelativeToolTip": "GameStore.Api\\GameStore.Api.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-07-10T08:36:23.022Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "GameStore.Api\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\Properties\\launchSettings.json",
+              "RelativeToolTip": "GameStore.Api\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-07-10T08:32:08.974Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
