@@ -3,8 +3,11 @@ using GameStore.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 //Connection to Sqllite 
-var connString = "Data Source=GameStore.db";//connection string 
+//var connString = "Data Source=GameStore.db";//connection string 
+var connString = builder.Configuration.GetConnectionString("GameStore");//parametre de appsettings.json icindeki connectionsstring deki key i verirriz..value ye erismek icin..Burdaki Configuration objesi IConfiguration interface ini implement ediyhor ki bu IConfiguration tum, configurtion lari topluyor...
+//builder.Configuration uzerine mouse ile gittgimzde bize sunu gosterir zaten=>ConfigurationManager WebApplicationBuilder.Configuration { get; }
 //register the services 
 builder.Services.AddSqlite<GameStoreContext>(connString);
 //iste burasi sayesinde bizim GameStoreContextimiz ile bir instance olusturulacak...ve tabi ki nereye gidyor Data/GameStoreContext te constructor daki parametrelleri de alip db ye connect oluyor
