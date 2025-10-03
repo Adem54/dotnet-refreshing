@@ -1287,11 +1287,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\GameStore.Api.csproj",
+      "projectUniqueName": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\GameStore.Api.csproj",
       "projectName": "GameStore.Api",
-      "projectPath": "c:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\GameStore.Api.csproj",
+      "projectPath": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\GameStore.Api.csproj",
       "packagesPath": "C:\\Users\\Hp35\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\obj\\",
+      "outputPath": "C:\\Users\\Hp35\\Desktop\\Projects\\Dotnet\\dotnet-refreshing\\GameStore\\GameStore.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
