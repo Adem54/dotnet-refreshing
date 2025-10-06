@@ -9,10 +9,10 @@ POST http://localhost:5227/games
 Content-Type: application/json
 
 {
-  "name": "Iron Dome",
-  "genre": "Strategy",
-  "price": 0,
-  "releaseDate": "2021-09-07"
+  "name": "Final Fantasy XIV",
+  "GenreId": 2,
+  "price":59.99,
+  "releaseDate": "2010-09-30"
 }
 
 
