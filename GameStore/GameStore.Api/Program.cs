@@ -25,13 +25,12 @@ var app = builder.Build();
 
 //tum endpointleri app(WebApplication type) extension method ekledik ve sayfayi temiz hale getirmeis olduk
 app.MapGamesEndpoints();
+app.MapGenresEndpoints();
 
 //Exthention methodu uygulariz burda..
-app.MigrateDb();//DataExtensions.MigrateDb(app);
-
+await app.MigrateDbAsync();//DataExtensions.MigrateDb(app);
 
 app.Run();
-
 //DbContext imiz yani GameStoreContext imizi application a nasil haber vercegiz nasil register edecegiz
 //Bizi application a nasil, bizim sqllite db mizie bizim GameStoreConteximizi kullanark nasil connect olacagini soylememiz gerekiyor...
 //Register etmemiz gerekiyor context imizi uygulamanin basinda...dikkat edelim...

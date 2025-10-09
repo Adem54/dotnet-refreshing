@@ -8,11 +8,12 @@ namespace GameStore.Api.Data
 {
     public static class DataExtensions
     {
-        public static void MigrateDb(this WebApplication app)
+      //  public static void MigrateDb(this WebApplication app)
+        public static async Task MigrateDbAsync(this WebApplication app)
         {
             using var scope = app.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<GameStoreContext>();
-            dbContext.Database.Migrate();
+            await dbContext.Database.MigrateAsync();//Biz bir methodumzu asenkron yapacaksak sunu unutmayalim ki, methodlarimzin sonunu Async haline getirmleiyz 
         }
         //What we want to do here is to go ahead and migrate the database
         //Scoped life time olmasi gerekiyor ayni zamanda

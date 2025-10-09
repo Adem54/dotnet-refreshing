@@ -32,16 +32,31 @@ namespace GameStore.Api.Mapping
                game.ReleaseData
            );
         }
-        
+
         public static GameDetailsDto ToGameDetailsDto(this Game game)
         {
-             return  new(
-                game.Id,
-                game.Name,
-                game.GenreId,//demek Genre is never going to be null..ben garanti ediyorum sana demek...
-                game.Price,
-                game.ReleaseData
-            );
+            return new(
+               game.Id,
+               game.Name,
+               game.GenreId,//demek Genre is never going to be null..ben garanti ediyorum sana demek...
+               game.Price,
+               game.ReleaseData
+           );
+        }
+
+        //Sunu bilelim ki, bu UpdateGameDto does not come with and Id, remember updateGameDto does not have any Id but
+        //we do want to create this game with an ID, because the user has specified that he wants to replace very specific entity with a specified Id
+        //Because of that what we can do is just to add one more parameter, that is going to be int id
+        public static Game ToEntity(this UpdateGameDto game, int id)
+        {
+            return new Game()
+            {
+                Id = id,
+                Name = game.Name,
+                GenreId = game.GenreId,
+                Price = game.Price,
+                ReleaseData = game.ReleaseDate
+            };
         }
     }
 }
