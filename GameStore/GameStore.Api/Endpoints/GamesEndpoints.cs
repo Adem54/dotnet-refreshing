@@ -178,8 +178,7 @@ ToGameSummaryDto(Game game) içinde NullReferenceException.
            await dbContext.Games
                       .Where(game => game.Id == id)
                       .ExecuteDeleteAsync();
-            //known as batch delete, it is very efficient opertion, becuase we don't have to first find entity, just to say hey entityframework 
-            //keep track of that i am going to delete it, and go ahead and save the deletion 
+            //known as batch delete, it is very efficient opertion, becuase we don't have to first find entity, just to say hey entityframework  keep track of that i am going to delete it, and go ahead and save the deletion 
             //This line is just one shot is going to go straight in to the database find the entiyt and delete it right away, there is no need to do anything else here..and then we just return no content
             return Results.NoContent();
         });
