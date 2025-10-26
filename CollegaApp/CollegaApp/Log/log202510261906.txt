@@ -1,0 +1,27 @@
+2025-10-26 19:06:23.682 +01:00 [INF] Starting web application
+2025-10-26 19:06:25.703 +01:00 [INF] Now listening on: https://localhost:7014
+2025-10-26 19:06:25.739 +01:00 [INF] Now listening on: http://localhost:5028
+2025-10-26 19:06:26.040 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-10-26 19:06:26.042 +01:00 [INF] Hosting environment: Development
+2025-10-26 19:06:26.043 +01:00 [INF] Content root path: C:\Users\Hp35\Desktop\Projects\Dotnet\dotnet-refreshing\CollegaApp\CollegaApp
+2025-10-26 19:06:26.680 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/swagger/index.html - null null
+2025-10-26 19:06:27.205 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/_vs/browserLink - null null
+2025-10-26 19:06:27.249 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/swagger/index.html - 200 null text/html;charset=utf-8 586.1043ms
+2025-10-26 19:06:27.373 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/_framework/aspnetcore-browser-refresh.js - null null
+2025-10-26 19:06:27.438 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/_framework/aspnetcore-browser-refresh.js - 200 13756 application/javascript; charset=utf-8 50.1199ms
+2025-10-26 19:06:27.770 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/_vs/browserLink - 200 null text/javascript; charset=UTF-8 561.9035ms
+2025-10-26 19:06:27.926 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/swagger/v1/swagger.json - null null
+2025-10-26 19:06:28.057 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 111.0558ms
+2025-10-26 19:06:32.199 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/api/Demo/index - null null
+2025-10-26 19:06:32.268 +01:00 [INF] Executing endpoint 'CollegaApp.Controllers.DemoController.Index (CollegaApp)'
+2025-10-26 19:06:32.309 +01:00 [INF] Route matched with {action = "Index", controller = "Demo"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Index() on controller CollegaApp.Controllers.DemoController (CollegaApp).
+2025-10-26 19:06:32.401 +01:00 [INF] Executing action method CollegaApp.Controllers.DemoController.Index (CollegaApp) - Validation state: "Valid"
+2025-10-26 19:06:32.418 +01:00 [INF] Log mesage from Information method
+2025-10-26 19:06:32.432 +01:00 [WRN] Log mesage from warning method
+2025-10-26 19:06:32.438 +01:00 [ERR] Log mesage from error method
+2025-10-26 19:06:32.444 +01:00 [FTL] Log mesage from critical method
+2025-10-26 19:06:32.472 +01:00 [INF] Executed action method CollegaApp.Controllers.DemoController.Index (CollegaApp), returned result Microsoft.AspNetCore.Mvc.OkResult in 41.9432ms.
+2025-10-26 19:06:32.524 +01:00 [INF] Executing StatusCodeResult, setting HTTP status code 200
+2025-10-26 19:06:32.553 +01:00 [INF] Executed action CollegaApp.Controllers.DemoController.Index (CollegaApp) in 203.4388ms
+2025-10-26 19:06:32.557 +01:00 [INF] Executed endpoint 'CollegaApp.Controllers.DemoController.Index (CollegaApp)'
+2025-10-26 19:06:32.564 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/api/Demo/index - 200 0 null 365.4347ms

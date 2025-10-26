@@ -1,0 +1,13 @@
+2025-10-26 18:54:01.002 +01:00 [INF] Now listening on: https://localhost:7014
+2025-10-26 18:54:01.012 +01:00 [INF] Now listening on: http://localhost:5028
+2025-10-26 18:54:01.313 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-10-26 18:54:01.314 +01:00 [INF] Hosting environment: Development
+2025-10-26 18:54:01.314 +01:00 [INF] Content root path: C:\Users\Hp35\Desktop\Projects\Dotnet\dotnet-refreshing\CollegaApp\CollegaApp
+2025-10-26 18:54:02.362 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/swagger/index.html - null null
+2025-10-26 18:54:02.856 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/_framework/aspnetcore-browser-refresh.js - null null
+2025-10-26 18:54:02.868 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/swagger/index.html - 200 null text/html;charset=utf-8 526.7566ms
+2025-10-26 18:54:02.871 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/_framework/aspnetcore-browser-refresh.js - 200 13756 application/javascript; charset=utf-8 15.1736ms
+2025-10-26 18:54:02.902 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/_vs/browserLink - null null
+2025-10-26 18:54:03.039 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/_vs/browserLink - 200 null text/javascript; charset=UTF-8 137.0719ms
+2025-10-26 18:54:03.131 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/swagger/v1/swagger.json - null null
+2025-10-26 18:54:03.222 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 93.674ms

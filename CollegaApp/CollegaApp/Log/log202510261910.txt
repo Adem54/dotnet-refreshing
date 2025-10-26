@@ -1,0 +1,13 @@
+2025-10-26 19:10:31.429 +01:00 [INF] Request starting HTTP/2 GET https://localhost:7014/api/Demo/index - null null
+2025-10-26 19:10:31.518 +01:00 [INF] Executing endpoint 'CollegaApp.Controllers.DemoController.Index (CollegaApp)'
+2025-10-26 19:10:31.574 +01:00 [INF] Route matched with {action = "Index", controller = "Demo"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Index() on controller CollegaApp.Controllers.DemoController (CollegaApp).
+2025-10-26 19:10:31.669 +01:00 [INF] Executing action method CollegaApp.Controllers.DemoController.Index (CollegaApp) - Validation state: "Valid"
+2025-10-26 19:10:31.696 +01:00 [INF] Log mesage from Information method
+2025-10-26 19:10:31.710 +01:00 [WRN] Log mesage from warning method
+2025-10-26 19:10:31.717 +01:00 [ERR] Log mesage from error method
+2025-10-26 19:10:31.724 +01:00 [FTL] Log mesage from critical method
+2025-10-26 19:10:31.748 +01:00 [INF] Executed action method CollegaApp.Controllers.DemoController.Index (CollegaApp), returned result Microsoft.AspNetCore.Mvc.OkResult in 44.8666ms.
+2025-10-26 19:10:31.807 +01:00 [INF] Executing StatusCodeResult, setting HTTP status code 200
+2025-10-26 19:10:31.852 +01:00 [INF] Executed action CollegaApp.Controllers.DemoController.Index (CollegaApp) in 218.5237ms
+2025-10-26 19:10:31.858 +01:00 [INF] Executed endpoint 'CollegaApp.Controllers.DemoController.Index (CollegaApp)'
+2025-10-26 19:10:31.866 +01:00 [INF] Request finished HTTP/2 GET https://localhost:7014/api/Demo/index - 200 0 null 442.596ms

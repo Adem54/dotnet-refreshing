@@ -8,7 +8,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddSwaggerGen().AddEndpointsApiExplorer();
+//builder.Services.AddSwaggerGen().AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
@@ -18,8 +18,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    //app.UseSwagger();
+    //app.UseSwaggerUI();
 }
 
 app.MapControllers();

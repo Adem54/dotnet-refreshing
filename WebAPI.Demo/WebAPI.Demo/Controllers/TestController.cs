@@ -24,12 +24,12 @@ namespace WebAPI.Demo.Controllers
         // 204 NoContent ve ben data donmek istemiyorum diyorsan NoContent() kullanacaksin
         //201 Created ve ben data donmek istiyorum diyorsan Created(uri, data) kullanacaksin
         //Iste su andaki endpointin durumu bestpractise lere uyuyor, cunku IActionResult return ediyor ve de 200 Ok ile birlikte data da donuyor
-        [HttpPost]
-        public IActionResult CreateProduct(ProductDto request)
-        {
+        //[HttpPost]
+        //public IActionResult CreateProduct(ProductDto request)
+        //{
           
-            return StatusCode(200, new { request });//200 diye gider
-        }
+        //    return StatusCode(200, new { request });//200 diye gider
+        //}
 
 
 

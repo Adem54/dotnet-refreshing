@@ -18,14 +18,14 @@ namespace WebAPI.Demo.Controllers
 
 
         [HttpPost]
-        public IActionResult CreateProduct(CreateProductDto productDto)
+        public IActionResult CreateProduct(CreateProductDto dto)
         {
             //Validation yapalim-Data annotation ile yapalim...bunu model binding den once yapmaliyiz
             //1- Gelen data null mi, bos mu, degil mi, bunu kontrol edelim yani validation yapalim
             // Name 3 karakterden kucuk olamaz, 100 karakterden buyuk olamaz..Bunlar annotation ile halledildi
 
             //2.Gelen Dto yu Product a yani entity e cevirelim
-            Product product = productDto.ToEntity();
+            Product? product = dto.ToEntity();
             //Product product2 = ExtensionMethods.ToEntity(productDto);
 
             //3.Artik product u veritabanina kaydedebiliriz
@@ -55,7 +55,8 @@ namespace WebAPI.Demo.Controllers
         {
             //1.si gelen id uzerinden veritabaninda bu id li data var mi onu aryacagiz.. 
             //Arama islemini yaparken dogru arac ile yapmaliyiz...performans vs..acisindan..
-            Product? product = dbContext.Products.Find(id);
+            //Product? product = dbContext.Products.Find(id);
+            Product? product = Products.Find(p=>p.Id == id);
 
             return product is null
                     ? NotFound()//404 ile gider..
@@ -75,20 +76,23 @@ namespace WebAPI.Demo.Controllers
         {
             //1.Validation-Oncelikle gelen data validatioin i annotation uzerinden yapilmali ya da fluentValidation, yada kendi extension methodlairmz 
             //2.Gelen id uzerinden veritabaninda bu id li data var mi onu aryacagiz.. 
-            Product? existingProduct = dbContext.Products.Find(id);
+          //  Product? existingProduct = dbContext.Products.Find(id);
+            Product? existingProduct = Products.Find(p => p.Id == id);
+
             if (existingProduct is null)
             {
                 return NotFound();//404 ile gider
             }
            
             //3.Artik existingProduct u veritabaninda update edecegiz ama 
-            dbContext.Entry(existingProduct).CurrentValues.SetValues(updateProductDto.ToEntity());
+           // dbContext.Entry(existingProduct).CurrentValues.SetValues(updateProductDto.ToEntity());
+            Products.Where(p=>p.Id == id).Select(Product=>updateProductDto.ToEntity()).ToList();
             //Buraya dikkat edelim, existingProduct ile mevcut datayi aliyoruz, sonra da Entry ile o entity i aliyoruz, sonra da CurrentValues ile o entity in current values larini aliyoruz, sonra da SetValues ile gelen updateProductDto yu entity e cevirip set ediyoruz, yani update ediyoruz
-            dbContext.SaveChanges();
+            //dbContext.SaveChanges();
 
             //4.Artik response dto muzu return edebiliriz
             return Ok(existingProduct.ToDetailDto());//200 ile gider
-            return NoContent();//204 ile gider
+            //return NoContent();//204 ile gider
             /*
              200 OK + body: Güncellenmiş kaydın temsilini döndürmek istiyorsan (client anında yeni değeri görsün) gayet doğru.
              204 No Content: “Güncellendi ama gövde göndermiyorum” dersen doğru. Özellikle client zaten son halini biliyorsa tercih edilir.
@@ -109,16 +113,18 @@ namespace WebAPI.Demo.Controllers
         [HttpDelete("{id}")]//Rootparam ile id yi aliyoruz..    //api/product/5    
         public IActionResult Delete(int id)
         {
-            Product? product = dbContext.Products.Find(id);
+            //Product? product = dbContext.Products.Find(id);
+            Product? product = Products.Find(p => p.Id == id);
+
             if (product is null)
             {
                 return NotFound();//404 ile gider
             }
            
-            dbContext.Products.Where(p=>p.Id == id).ExecuteDelete();//Bunu yapinca arka planda direkt delete from Products where Id = id seklinde sql sorgusu calisir.This line is just one shot is going to go straight in to the database find the entiyt and delete it right away, there is no need to do anything else here..and then we just return no content
+           // dbContext.Products.Where(p=>p.Id == id).ExecuteDelete();//Bunu yapinca arka planda direkt delete from Products where Id = id seklinde sql sorgusu calisir.This line is just one shot is going to go straight in to the database find the entiyt and delete it right away, there is no need to do anything else here..and then we just return no content
             //ExecuteDelete() / ExecuteDeleteAsync() (EF Core 7+): LINQ ifadenizden tek seferde DELETE ... WHERE ... üretip hemen çalıştırır.
             //YANI BU ASLINDA Doğrudan SQL’le silme (tracking yok, tek atış) — Önerilir...
-
+            Products.Remove(product);
             // //dbContext.Products.Remove(product);=>Remove(product) sadece entity’yi Deleted olarak işaretler (Change Tracker’da).Bundan dolayi sonrasinda SaveChanges yapman gerekir=>await dbContext.SaveChangesAsync();
             return NoContent();//204 ile gider
         }
@@ -165,9 +171,9 @@ namespace WebAPI.Demo.Controllers
      */
     public record class CreateProductDto
     {
-        [Required][StringLength(50)]
+        [Required]
         public string Name { get; set; } = string.Empty;
-        [Range(1,100)] 
+        [Range(100,1000)] 
         public decimal Price { get; set; }
         public int CategoryId { get; set; } = 0;
         public DateOnly ReleaseData { get; init; }

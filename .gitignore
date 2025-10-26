@@ -1,0 +1,10 @@
+# VS / .NET
+.vs/
+bin/
+obj/
+Debug/
+Release/
+*.user
+*.suo
+*.vsidx
+*.vscode/
