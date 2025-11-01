@@ -1,0 +1,12 @@
+2025-11-01 09:39:14,394  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+ 2025-11-01 09:39:14,408  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ 2025-11-01 09:39:14,421  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (10ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+ 2025-11-01 09:39:14,432  INFO Microsoft.EntityFrameworkCore.Migrations.? [?] - MESSAGE: Applying migration '20251101083859_modifyStudentConfigSchema'.
+ 2025-11-01 09:39:14,474  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (25ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ALTER TABLE [StudentsDb] DROP CONSTRAINT [PK_StudentsDb];
+ 

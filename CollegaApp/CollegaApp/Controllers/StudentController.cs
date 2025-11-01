@@ -252,6 +252,19 @@ namespace CollegaApp.Controllers
             return Ok(studentDto); 
         }
 
+
+        [HttpGet("studentindex")]
+        public IActionResult Index()
+        {
+            _logger.LogTrace("Log mesage from trace method");
+            _logger.LogDebug("Log mesage from Debug method");
+            _logger.LogInformation("Log mesage from Information method");
+            _logger.LogWarning("Log mesage from warning method");
+            _logger.LogError("Log mesage from error method");
+            _logger.LogCritical("Log mesage from critical method");
+            return Ok();
+        }
+
         //Student entity sinin ornegin 5 farkli propertysi var ise, client sadece mesela Name propertysi veya Email proprtysnin update edecek ise o zaman diger tum propertleri gondermek zorunda kalmaz ki diger tum propertyleri gereksiz yere gondermek zaten hem performans acisindan kotudur hem de guvenlik acisindan kotudur...O zaman ne yapmaliyiz?Partial update yapmaliyiz...Yani sadece guncellemek istedigimiz property leri gondeririz...Bunun icin HTTP PATCH methodu kullanilir...PUT methodu ile de partial update yapilabilir ama genellikle PATCH kullanilir bu is icin...
         [HttpPatch("partial-update/{id:int}")]///api/Student/partial-update/{id}
         /*

@@ -1,0 +1,10 @@
+2025-10-28 00:38:40,254  WARN CollegaApp.Controllers.DemoController.Index [32] - MESSAGE: Log mesage from warning method
+ 2025-10-28 00:38:40,265 ERROR CollegaApp.Controllers.DemoController.Index [33] - MESSAGE: Log mesage from error method
+ 2025-10-28 00:38:40,268 FATAL CollegaApp.Controllers.DemoController.Index [34] - MESSAGE: Log mesage from critical method
+ 2025-10-28 00:38:40,516 TRACE CollegaApp.Controllers.DemoController.Index [29] - MESSAGE: Log mesage from trace method
+ 2025-10-28 00:38:40,520 DEBUG CollegaApp.Controllers.DemoController.Index [30] - MESSAGE: Log mesage from Debug method
+ 2025-10-28 00:38:40,524  INFO CollegaApp.Controllers.DemoController.Index [31] - MESSAGE: Log mesage from Information method
+ 2025-10-28 00:38:40,537  WARN CollegaApp.Controllers.DemoController.Index [32] - MESSAGE: Log mesage from warning method
+ 2025-10-28 00:38:40,540 ERROR CollegaApp.Controllers.DemoController.Index [33] - MESSAGE: Log mesage from error method
+ 2025-10-28 00:38:40,543 FATAL CollegaApp.Controllers.DemoController.Index [34] - MESSAGE: Log mesage from critical method
+ 

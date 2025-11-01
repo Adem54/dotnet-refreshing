@@ -1,0 +1,12 @@
+2025-10-31 00:38:45,652  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+ 2025-10-31 00:38:45,665  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ 2025-10-31 00:38:45,672  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+ 2025-10-31 00:38:45,683  INFO Microsoft.EntityFrameworkCore.Migrations.? [?] - MESSAGE: Applying migration '20251030233831_AddBlogDOB'.
+ 2025-10-31 00:38:45,716  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (24ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ALTER TABLE [StudentsDb] ADD [DOB] datetime2 NOT NULL DEFAULT '0001-01-01T00:00:00.0000000';
+ 

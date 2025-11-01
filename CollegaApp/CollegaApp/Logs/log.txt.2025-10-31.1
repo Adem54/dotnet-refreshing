@@ -1,0 +1,18 @@
+2025-10-31 01:08:48,722  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+ 2025-10-31 01:08:48,736  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ 2025-10-31 01:08:48,746  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+ 2025-10-31 01:08:48,762  INFO Microsoft.EntityFrameworkCore.Migrations.? [?] - MESSAGE: Applying migration '20251031000619_AddDataToStudentsTable'.
+ 2025-10-31 01:08:48,842  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (47ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'Address', N'DOB', N'Email', N'Name') AND [object_id] = OBJECT_ID(N'[StudentsDb]'))
+    SET IDENTITY_INSERT [StudentsDb] ON;
+INSERT INTO [StudentsDb] ([Id], [Address], [DOB], [Email], [Name])
+VALUES (1, N'Porsgrunn', '2025-10-30T00:00:00.0000000', N'ada@uni.edu', N'Ada'),
+(2, N'Skien', '2025-10-29T00:00:00.0000000', N'linus@uni.edu', N'Linus');
+IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'Address', N'DOB', N'Email', N'Name') AND [object_id] = OBJECT_ID(N'[StudentsDb]'))
+    SET IDENTITY_INSERT [StudentsDb] OFF;
+ 

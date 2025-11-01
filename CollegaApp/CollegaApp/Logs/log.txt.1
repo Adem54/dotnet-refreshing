@@ -1,0 +1,13 @@
+2025-11-01 09:39:14,880  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (405ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+EXEC sp_rename N'[StudentsDb]', N'Students', 'OBJECT';
+ 2025-11-01 09:39:14,921  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (30ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ALTER TABLE [Students] ADD CONSTRAINT [PK_Students] PRIMARY KEY ([Id]);
+ 2025-11-01 09:39:14,925  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+UPDATE [Students] SET [Address] = N'Porsgrunn2', [Email] = N'ada2@uni.edu', [Name] = N'Ada2'
+WHERE [Id] = 1;
+SELECT @@ROWCOUNT;
+ 2025-11-01 09:39:14,928  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+UPDATE [Students] SET [Address] = N'Skien2', [Email] = N'linus2@uni.edu', [Name] = N'Linus2'
+WHERE [Id] = 2;
+SELECT @@ROWCOUNT;
+ 
