@@ -1,0 +1,17 @@
+2025-11-10 00:02:16,055  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (58ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
+FROM [Students] AS [s]
+WHERE [s].[Id] = @__id_0
+ 2025-11-10 00:02:16,249  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (4ms) [Parameters=[@p0='?' (Size = 500), @p1='?' (DbType = DateTime2), @p2='?' (Size = 250), @p3='?' (Size = 250)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [Students] ([Address], [DOB], [Email], [Name])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3);
+ 2025-11-10 00:03:12,344 ERROR CollegaApp.Controllers.StudentController.Index [397] - MESSAGE: Log mesage from error method
+ 2025-11-10 00:03:12,350 FATAL CollegaApp.Controllers.StudentController.Index [398] - MESSAGE: Log mesage from critical method
+ 2025-11-10 00:03:56,045  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (8ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
+FROM [Students] AS [s]
+WHERE [s].[Id] = @__p_0
+ 

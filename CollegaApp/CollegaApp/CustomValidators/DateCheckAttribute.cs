@@ -17,10 +17,10 @@ namespace CollegaApp.CustomValidators
             }
 
         
-            return new ValidationResult("The date is valid.");
+           //return new ValidationResult("The date is valid.");
             //return new ValidationResult("The date is valid.");Bu, başarısızlık demek. ValidationResult.Success (ya da null) dönmediğin sürece ModelState’e hata eklenir. [ApiController] varsa otomatik 400 BadRequest gelir.
             //aşarılı durumda ValidationResult.Success döneceksin.
-
+            return ValidationResult.Success; // ✅ başarılı durumda hep Success
 
             //if (value is DateTime dateValue)//value is not null and is of type DateTime demektir bu...
             //{

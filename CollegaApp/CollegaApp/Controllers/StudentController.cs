@@ -1,8 +1,12 @@
-﻿using CollegaApp.Dtos;
-using CollegaApp.Models;
+﻿using AutoMapper;
+using CollegaApp.Data;
+using CollegaApp.Dtos;
 using CollegaApp.MyLogging;
+using log4net.Util.TypeConverters;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace CollegaApp.Controllers
 {
@@ -12,41 +16,121 @@ namespace CollegaApp.Controllers
     public class StudentController : ControllerBase//ControllerBase sayesinde IActionResult gibi tipleri kullanabiliriz.
     {
         private readonly ILogger<StudentController> _logger;
+        private readonly IMapper _mapper;
+        private readonly CollegeDBContext _dbContext;
 
-        public StudentController(ILogger<StudentController> logger)
+        public StudentController(ILogger<StudentController> logger, CollegeDBContext dbContext, IMapper mapper)
         {
             _logger = logger;
+            _dbContext = dbContext;
+            _mapper = mapper;
         }
 
         //[HttpGet("GetStudents")] //HTTP GET isteği için bu metodu kullanır.//https://localhost:7014/api/Student/GetStudents
         //[HttpGet][Route("All")]//https://localhost:7014/api/Student/All
         [HttpGet]
         [Route("All", Name = "GetAllStudents")]
-        public ActionResult<IEnumerable<Student>> GetAll()
+        public async Task<ActionResult<IEnumerable<StudentDto>>> GetAll()
         {
             _logger.LogInformation("GetAll Students method is called");
-            return CollegeRepostory.Students;
+            //return _dbContext.Students;//Direk Database deki data yi donmeyiz..1.security icin onerilmez, 2.data transfrom objects leri kullaniriz request-response larda data olarak..
+            /*  return await _dbContext.Students.AsNoTracking().Select(s=>new StudentDto()
+              {
+                  Id = s.Id,
+                  Name = s.Name,
+                  Email = s.Email,
+                  Address = s.Address,
+                  DOB = s.DOB.ToShortDateString()
+
+              }).ToListAsync(); */
+
+            var students = await _dbContext.Students.ToListAsync();
+            var studentDTOData = _mapper.Map<List<StudentDto>>(students);//destination StudentDto, source is students..This is how we can auomatically transform, or copy from entity object to dto object
+            //students is List, StudentDto is single class..
+            return Ok(studentDTOData);
+
+            //var result = _mapper.Map<List<StudentDto>>(students);
+            //Ya kendi helper-extension metodlarimizla .ToStudentDto...deriz ya da direk manuel olarak burda yapariz..yada AutoMapper da kullanabiliriz..
+            /*
+            NEDEN Select(...) ile DTO’ya projekte ediyoruz?
+            “Projeksiyon” (project etmek) = veriyi başka bir şekle dönüştürmek demek.LINQ/SQL dünyasında projection, bir tablodaki satırları farklı bir yapıya veya alanların bir alt kümesine çevirmektir.
+            C#’ta bu genelde Select(...) ile yapılır: Entity → DTO (veya anonim tip) gibi.
+            Sonuç: DB’den yalnızca gerekli sütunlar (Id, Name, Email) gelir ve API bu şekle döner.
+
+            NEDEN Select(...) ile DTO’ya projekte ediyoruz?
+            1.Security / veri sızıntısı
+            Entity’de istemediğin alanlar olabilir (örn. PasswordHash, IsDeleted, teknik sütunlar).
+            return _dbContext.Students.ToList() dersen hepsi JSON’a gider.
+            Select(new StudentDto { ... }) ile sadece gereken alanları döndürürsün.
+
+            2.Şema bağımsızlığı & versiyonlama
+            DB şeman değişse bile DTO sözleşmesini korursun. Frontend entity’ye kilitlenmez.
+
+            Sık yapılan hatalar
+            ToList()’i Select’ten önce çağırmak → tüm satırları RAM’e alır, sonra dönüştürür (kaçın).
+            Entity döndürmek → fazla kolon, güvenlik riski, büyük JSON.
+            AsNoTracking() unutmak → gereksiz change tracker overhead.
+            
+            3.Performans (kolon/row azaltma)
+            Select SQL düzeyinde sadece seçtiğin kolonları getirir:
+            Entity döndürürsen tüm kolonlar gelir (gereksiz I/O + payload).
+
+            4.Takip maliyeti (tracking)
+            Okuma endpoint’lerinde genelde AsNoTracking() isteriz. DTO projeksiyonunda bunu rahat uygularız.
+            Entity döndürmek genelde tracking açık anlamına gelir (gereksiz).
+
+            5.Döngüsel referans / navigasyon sorunları
+            Entity’de Courses -> Students -> Courses gibi navigasyonlar varsa JSON’da döngü ve büyük payload riski.
+            6.AutoMapper / ProjectTo avantajı
+            ProjectTo<StudentDto>() ile projeksiyon SQL’e çevrilir ve sadece gerekli alanlar gelir.
+
+            DIKKATET
+            Entity döndürme: kolay ama riskli (güvenlik, performans, sözleşme).
+            DTO’ya Select: doğru pratik; yalnızca gereken kolonlar, daha güvenli ve stabil API.
+            Üretimde: AsNoTracking + Select DTO (+ AutoMapper ProjectTo) kalıbını kullan
+
+             */
         }
 
-        // [HttpGet("GetStudent/{id:int?}")]
+
+        //[HttpGet("GetStudent/{id:int?}")]
         //[HttpGet("GetStudent/{studentId:int}")]
         [HttpGet]
         [Route("GetStudent/{studentId:int?}")] //https://localhost:7014/api/Student/GetStudent/1  veya https://localhost:7014/api/Student/GetStudent/1
         // public Student? Get(int? studentId)
-        public ActionResult<Student?> Get([FromRoute(Name = "studentId")] int? id)
+        public async Task<ActionResult<StudentDto?>> Get([FromRoute(Name = "studentId")] int? id)
         {
             _logger.LogInformation(" Get Student by ID method is called");
-            Student? student = CollegeRepostory.Students.Find(s => s.Id == id);//Student? List<Student>.Find(Predicate<Student> match);,the default value type T, reutrns the first element...Find(Predicate<T>) ⇒ tek öğe döndürür (yoksa null).
-            return student == null ? NotFound() : student;
+            //Student? student = await _dbContext.Students.FindAsync(id);//Student?
+            Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s=>s.Id == id );//Student?
+
+            Student? student2 = _dbContext.Students.FirstOrDefault(s=>s.Id == id);
+                                                                                      //Find(id) imzasi bu sekildedir IQUERYABLE da, yani db de yapilan sorguda, ama Find(IPredicate) olarak calisir ram tarafinda dotnette...Find(s=>s.Id==id) seklinde... 
+                                                                                      //FirsOrDefault=>Once match olan first dataya bakar bulursa onu alir devam eder, bulamazsa Default olarak null verir..
+
+            if (student is null)
+            {
+                _logger.LogWarning("Not found, there is no student");
+                return NotFound();
+            }
+            //var studentDto = new StudentDto()
+            //{
+            //    Id = student.Id,
+            //    Name = student.Name,
+            //    Email = student.Email,
+            //    Address = student.Address,
+            //    DOB = student.DOB.ToShortDateString()
+            //};
+            var studentDto = _mapper.Map<StudentDto>(student);
+            //return Dto not entity
+            return student == null ? NotFound() : studentDto;
         }
-        //id yi range yani bir sayi araliginda da verebiliriz :range(1,100)..Bunlara route constraints denir...
-        //List of route constraints diyerek, google da aratabiliriz...Client tarafindan girilecek datayi - server tarafindan route-constraintslerle sinirlayabiliriz...
-        //Bir adim daha ileri giderek eger ki hazir route-constraintleri de bizim isimize yaramazsa kendi custom route-constraintimzi de yazabiliriz IHttpRouteConstraint interface ini implement ederek...
+        
         [HttpGet]
         // [Route("{id:int}", Name = "GetStudentById")]
         //  [Route("{id:min(1):max(100)}", Name = "GetStudentById")]
         [Route("{id:range(1,100)}", Name = "GetStudentById")]
-        public ActionResult<Student> GetStudentById(int id)
+        public async Task<ActionResult<StudentDto>> GetStudentById(int id)
         {
             if(id <= 0)
             {
@@ -54,18 +138,29 @@ namespace CollegaApp.Controllers
                 return BadRequest();
             }
 
-            Student? student = CollegeRepostory.Students.FirstOrDefault(s => s.Id == id);
+            Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
             if(student is null)
             {
                 _logger.LogWarning("Not found, there is no student");
                 return NotFound();
             }
-            return Ok(student);
+
+            //var studentDto = new StudentDto()
+            //{
+            //    Id = student.Id,
+            //    Name = student.Name,
+            //    Email = student.Email,
+            //    Address = student.Address,
+            //    DOB = student.DOB.ToShortDateString()
+            //};
+
+            var studentDto = _mapper.Map<StudentDto>(student);
+            return Ok(studentDto);
         }
         //alpahabetik karakterler icin :alpha...Bunlara route constraints denir...
         [HttpGet("by-name/{name:alpha}", Name = "GetStudentByName")]
 
-        public ActionResult<Student?> GetStudentByName(string name)
+        public async Task<ActionResult<StudentDto?>> GetStudentByName(string name)
         {
             //Burda name null veya empty gelebilir, bunu kontrol edelim.....ONEMLI...
             if (string.IsNullOrWhiteSpace(name))
@@ -74,21 +169,46 @@ namespace CollegaApp.Controllers
             }
             //ActionResult<T> kullanarak ister direk T tipinde data dönebiliriz, istersek de IActionResult gibi davranabiliriz...
             //return CollegeRepostory.Students.FirstOrDefault(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-            Student? student = CollegeRepostory.Students.FirstOrDefault(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Name == name);
             if (student is null)
             {
                 return NotFound($"{name} is not found!");
             }
-            return Ok(student);
+
+            //var studentDto = new StudentDto()
+            //{
+            //    Id = student.Id,
+            //    Name = student.Name,
+            //    Email = student.Email,
+            //    Address = student.Address,
+            //    DOB = student.DOB.ToShortDateString()
+            //};
+            var studentDto = _mapper.Map<StudentDto>(student);
+            return Ok(studentDto);
         }
 
         [HttpGet("by-email/{email}", Name = "GetStudentByEmail")]//GetStudentByName bu isim bu route a ozel isimdir
         // HttpVerb attribute ile de route u tanimlayabilirz, istersek de Route attribute ile de tanimlayabiliriz...
         //[Route("GetByName/{name}", Name = "GetStudentByName")]
-        public ActionResult<Student?> GetStudentByEmail(string email)
+        public async Task<ActionResult<Student?>> GetStudentByEmail(string email)
         {
-            Student? student = CollegeRepostory.Students.Find(s => s.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
-            return student is null ? NotFound() : student;
+            Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Email == email);
+
+            if (student is null)
+            {
+                return NotFound($"{email} is not found!");
+            }
+            //var studentDto = new StudentDto()
+            //{
+            //    Id = student.Id,
+            //    Name = student.Name,
+            //    Email = student.Email,
+            //    Address = student.Address,
+            //    DOB = student.DOB.ToShortDateString()
+            //};
+
+            var studentDto = _mapper.Map<StudentDto>(student);
+            return Ok(studentDto);
         }
 
         [HttpGet("save")]//Buraya hicbirsey yazmassak hata aliriz..
@@ -114,59 +234,36 @@ namespace CollegaApp.Controllers
         //[ProducesResponseType(404)]//Bu endpoint 404 durum kodu dönebilir
         [ProducesResponseType(StatusCodes.Status404NotFound)]//Bu endpoint 404 durum kodu dönebilir
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]//Bu endpoint 500 durum kodu dönebilir
-        public ActionResult<StudentDto> GetMyStudent(int id)
+        public async Task<ActionResult<StudentDto>> GetMyStudent(int id)
         {
             if (id <= 0)
             {
                 return BadRequest("Invalid ID");
             }
-            var student = CollegeRepostory.Students.FirstOrDefault(s => s.Id == id);
+            var student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
             if (student == null)
             {
                 _logger.LogError($"There is no student exist with this id: {id}");
                 return NotFound();
             }
             //response data as DTO ALWAYS
-            StudentDto studentDto = new StudentDto {
-                Id = student.Id,
-                Name = student.Name,
-                Email = student.Email,
-                Address = student.Address
-            };
+            //StudentDto studentDto = new StudentDto {
+            //    Id = student.Id,
+            //    Name = student.Name,
+            //    Email = student.Email,
+            //    Address = student.Address,
+            //    DOB = student.DOB.ToShortDateString()
+            //};
+            var studentDto = _mapper.Map<StudentDto>(student);
             return Ok(studentDto);
-
         }
-
-
         [HttpPost("create", Name = "SaveStudent") ]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<StudentDto> Create([FromBody] CreateStudentDto studentDto)
+        public async Task<ActionResult<StudentDto>> Create([FromBody] CreateStudentDto studentDto)
         {
-            //Custom validation logic for AdmissionDate
-            //1.Directly adding error message to ModelState 
-            /* if (studentDto.AdmissionDate < DateTime.Now)
-             {
-
-                 ModelState.AddModelError("AdmissionDate Error", "Admission date cannot be in the past");
-                 return BadRequest(ModelState);
-                 //2.Using Custom attribute to add error to ModelState
-
-             } */
-
-            //2.Using Custom attribute to add error to ModelState=>Check CustomValidators/DateCheckAttribute.cs this works like built-in data annotation attributes..If modelState is invalid, thanks to [ApiController] attribute on the controller class, automatic 400 BadRequest response will be returned with validation errors in the response body.
-
-
-            //[ApiController] i yoruma alirsak, burda validation i kendimz yapmaliyiz... 
-            // if(ModelState.IsValid == false) return BadRequest(ModelState);
-
-            //Validation i once tum obje icin yapriz null mi diye...null ise BadRequest doneriz
-            //dto olarak gelir, ve validatino yapilmalidir..FluentVaidatin, Annotatino veya kendimize ait extensino-validation metholarimz 
-            //Gelen dto veritabanina kaydetmek icin entiye ya automapper ya da kendi extension  methodumz ya da direk manuel olarak converting yapabilirz 
-            //Sonra entiyjmizi veritabanina kaydederiz..asyn-await ile yapariz genellikle 
-            //Aardindan enity framework sayesinde kaydedilen entity id si otomatk olarak entiydde set edilir 
-            //Ve biz db de olsuturulan entiymizi aliriz kullaniciya respnse olarak donemek istedigmiz dto ya donusturerek kullanicya da dto olarak response ederiz datamizi...
+           
             if (studentDto is null) return BadRequest("Student object can not be null");
             //Name, Email, Address 
             if(string.IsNullOrWhiteSpace(studentDto.Name) ||
@@ -178,39 +275,47 @@ namespace CollegaApp.Controllers
             }
 
             //Manuel conversion from dto to entity
-            Student student = new Student
-            {
-                Name = studentDto.Name,
-                Email = studentDto.Email,
-                Address = studentDto.Address
-            };
-            student.Id = CollegeRepostory.Students.Count() + 1;
+            //DIKKKAT ENTITY EKLEMESI OLACAGI ICIN BURDA ENTIYTCLASS I  KULLANILMALIDIR
+            //BILMEMIZ GEREKEN BIRSEY ID GONDERILMEZ CREATE ISLEMINDE, ID GENELLIKLE DB DE AUTOMATIK BIR SEKILDE OLUSTURULACAKTIR...
+            //Student student = new Student
+            //{
+            //    Name = studentDto.Name,
+            //    Email = studentDto.Email,
+            //    Address = studentDto.Address,
+            //    DOB = studentDto.AdmissionDate
+            //};
 
-            //Normally here we will save the student entity to database using async-await and entity framework
-            CollegeRepostory.Students.Add(student);
+            var student = _mapper.Map<Student>(studentDto);
+
+            await _dbContext.Students.AddAsync(student);//unit of work
+            await _dbContext.SaveChangesAsync();//saved the db now...
+            //Normally here we will save the student entity to database using async-await and entity framework..AYRICA DA DIKKAT EDELIM...KI BURDA SAVECHANGES GERCEKLESTGINDE..ARTIK student direk DB DE KAYDETTIT DATA ILE DOLDUREACK student i yani ID de yine doldurulmus olacak....
 
             //Return the created student dto with 201 status code
-            StudentDto responseDto = new StudentDto { Id = student.Id, Name = student.Name, Email = student.Email, Address = student.Address };
+            StudentDto responseDto = new StudentDto { Id = student.Id, StudentName = student.Name, Email = student.Email, Address = student.Address };
 
             //1.parameter route u hangi action ın kullanacagiz onu belirtiyoruz, 2.parametrede ise o action a gonderilecek route parametrelerini veriyoruz..yani GetStudentById action ına id parametresini gonderiyoruz
             //"GetStudentById", new { id=responseDto.Id  } bu iki data, link olarak newly created resource un url sini belirtir...
             //newly created studentDto yu donecegiz 3.parametrede de...
-            return CreatedAtRoute("GetStudentById", new { id=responseDto.Id  }, responseDto);
+            return CreatedAtRoute("GetStudentById", new { id= responseDto.Id  }, responseDto);
             // Status-201, DATAYI RESPONSE EDIYOR ARDINDAN DA RESPOSNE HEADERS DA location: olarak bu url li verecektir...  https://localhost:7014/api/Student/5 , 
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult<bool> Delete(int id)
+        public async Task<ActionResult<bool>> Delete(int id)
         {
             if (id <= 0) return BadRequest($"{id} is either 0 or less");
-            var myStudent = CollegeRepostory.Students.FirstOrDefault(s => s.Id == id);
+            var myStudent = await _dbContext.Students.FirstOrDefaultAsync(s => s.Id == id);
             if (myStudent is null)
             {
                 return NotFound($"{id} is not found");
                 // return false;
             }
 
-            CollegeRepostory.Students.Remove(myStudent);
+            _dbContext.Students.Remove(myStudent);
+            await _dbContext.SaveChangesAsync();
+            //_dbContext.Students.Where(s => s.Id == id).ExecuteDelete(); bu da tek basina delete islemine alternatif bu direk db den siler bu sekilde
+            
             return true;
         }
 
@@ -225,31 +330,59 @@ namespace CollegaApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<StudentDto> Update([FromRoute]  int id, UpdateStudentDto updateStudentDto)
+        public async Task<ActionResult<StudentDto>> Update([FromRoute]  int id, UpdateStudentDto updateStudentDto)
         {
             //1.Validation..gonderilen obje dto null mi? 
-            if(updateStudentDto is null)return BadRequest("Student object can not be null");
+            if (updateStudentDto is null)return BadRequest("Student object can not be null");
             //updateStudentDto icerisindeki Name,Email, Address valid olma durumunu biz Data Annotations ile belirttik...Ama [ApiController] attribute unu controller classina eklemezsek, burda manuel olarak validation yapmaliyiz...ModelState.IsValid kontrolu nu ControllerBase yapar arkada ve ModelState valid degilse bunu ApiController farkeder ve otomatik 400 badrequest doner...
             //id yi updateStudentDto icerisinde donenlerde olabiliyor..bu da farkli bir yaklasimdir
             //2.Validatio i yaptik sonra, gonderilen id veritabaninda var mi? Bul, yokse NotFound don 
             //3.Id var ve Student veritabanindan bulundu ise simdi de gondeirlen dto yu bulunan Student e update et...mapping islemi yap..Manuel yapabiliriz, kendi extension metodlarimzi olusturabilirz ya da AutoMapper kullanabilirz 
             //4.Gelen veriyi donusturdugmz Student i Entityframework de veritabaninda update etmeliyz       dbContext.Entry(existingProduct).CurrentValues.SetValues(updateProductDto.ToEntity());	Tabi biz Studente mapping yapma islemini entityframwork update islemi parametresinde de yapabiliriz burdaki gibi..ama kafamiz ned olmasi icin ayri ayri ilk basta daha temiz olur
             //5.Bu islem de hallolduguna gore geriye donecegimz response u dto olarak donmek..Mevcut var olan student update edilen student i alip reseponse edecegimz StudentDetailDto ya mapping yapip kullanicya return ederiz...		
-            var existingStudent = CollegeRepostory.Students.FirstOrDefault(s => s.Id == id);
+            var existingStudent = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
             if (existingStudent is null) return NotFound($"{id} is not found");
-            existingStudent.Name = updateStudentDto.Name;
-            existingStudent.Email = updateStudentDto.Email;
-            existingStudent.Address = updateStudentDto.Address;
+
+            //1.yontem
+            //  _dbContext.Entry(existingStudent)
+            //.CurrentValues
+            //.SetValues(updateStudentDto);
+            //  _dbContext.SaveChanges();
+
+            //  _dbContext.SaveChanges();
+
+            //2.yontem manuel olarak existingStudent.Name = updateStudentDto.Name sekklinde kolonlari ayri ayri guncelleriz ve en son _dbContext.SaveChanges(); yapariz
+
+            //3-.YONTEM var newRecord = new Student(){ icerisini parametrede gelen degerle doldururuz..sadece Id=existingStudent.Id olacak, Name=updateStudentDto.Name....gibi gerceklesecek...Sonra _dbContext.Students.Update(newRecord); _dbContext.SaveChanges(); seklinde yapabiliriz...
+            //var newRecord = new Student()
+            //{
+            //    Id = existingStudent.Id,
+            //    Name = updateStudentDto.Name,
+            //    Address = updateStudentDto.Address,
+            //    Email = updateStudentDto.Email,
+            //    DOB = updateStudentDto.DOB
+            //};
+
+            var newRecord = _mapper.Map<Student>(updateStudentDto);
+
+             _dbContext.Students.Update(newRecord);
+            await _dbContext.SaveChangesAsync();
+
+            /*
+             'Student' cannot be tracked because another instance with the same key value for {'Id'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the 
+             */
 
             var studentDto = new StudentDto
             {
-                Name = existingStudent.Name,
-                Email = existingStudent.Email, 
-                Address = existingStudent.Address
-            };
+                StudentName = newRecord.Name,
+                Email = newRecord.Email, 
+                Address = newRecord.Address,
+                DOB = newRecord.DOB.ToShortDateString()
+            }; 
 
             // return NoContent();//204 No Content doneriz cunku update islemi basarili oldu ama geriye donecek data yok..Eger NoContent donerrsek o zaman ActionResult<StudentDto> degil de IActionResult kullanmaliyiz method signature da
-            return Ok(studentDto); 
+            return Ok(studentDto);
+            /* update e alternatif olarak exstingStuden in tek tek Name,email,Address ini gelen updateStudentDto datasinin degerleri ile guncelleriz ki existingStudent db den cekecegimzdata..vede en son SAveChanges dersek o zaaman da direk veritabainda da artik updat dilmis olur...BU DA SU ANKI UPDATE ISLEMININ BIZRAZ DAHA ESKI VERSIYONU DIYEBLIRIZ..*/
         }
 
 
@@ -278,208 +411,118 @@ namespace CollegaApp.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
         //JsonPatchDocument sayesinde de partial update yapabiliriz ve bu sekilde UpdatePartialStudentDto kullanimina gerek kalmaz..
-        public ActionResult<StudentDto> PartialUpdate([FromRoute] int id, [FromBody] JsonPatchDocument<StudentDto> patchDocument)
+        public async Task<ActionResult<StudentDto>> PartialUpdate([FromRoute] int id, [FromBody] JsonPatchDocument<StudentDto> patchDocument)
         {
 
             //1.Validation gonderilen Dto null mu, id veritabaninda var mi?(id nin route constraint ile int olmasi saglandi..int olmazsa zaten actiona gelmez 400 badrequest doner)
             if (patchDocument is null  || id <= 0 ) return BadRequest("Student object can not be null");
-            Student existingStudent = CollegeRepostory.Students.Find(s => s.Id == id)!;
+            Student? existingStudent = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s=>s.Id == id);
             if (existingStudent is null) return NotFound($"{id} is not found");
 
-            var studentDTO = new StudentDto
-            {
-                Id = existingStudent.Id,
-                Name = existingStudent.Name,
-                Email = existingStudent.Email,
-                Address = existingStudent.Address
+            //var studentDTO = new StudentDto
+            //{
+            //    Id = existingStudent.Id,
+            //    Name = existingStudent.Name,
+            //    Email = existingStudent.Email,
+            //    Address = existingStudent.Address
 
-            };
+            //};
+
+            //Efcore existingStudent i track ediyor...ve bizim bunu studentDto ya cevirmemiz existinDto nun track edilmeisni degistirmiyor o hala track ediliyor,
+            var studentDto = _mapper.Map<StudentDto>(existingStudent);
             //Burda clienttan gelen tum degisiklkleri patchDocument ile studentDTO ya uyguluyoruz
-            patchDocument.ApplyTo(studentDTO,ModelState);//if anything goes wrong during applying the patchDocument to studentDTO, the errors will be added to ModelState
+            patchDocument.ApplyTo(studentDto, ModelState);//if anything goes wrong during applying the patchDocument to studentDTO, the errors will be added to ModelState
             //Bundan dolayi ModelState i kontrol etmeliyiz
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
             //Simdi studentDTO dan gelen degerlerle existingStudent entity sini update edelim
-            existingStudent.Name = studentDTO.Name;
-            existingStudent.Email = studentDTO.Email;
-            existingStudent.Address = studentDTO.Address;
+            //existingStudent.Name = studentDto.Name;
+            //existingStudent.Email = studentDto.Email;
+            //existingStudent.Address = studentDto.Address;
+            //existingStudent.DOB = Convert.ToDateTime(studentDto.DOB);//string date i DateTime a cevirmemiz gerekiyor
 
-            //Artik response edecegimz dto yu hazirlariz ve update olmus entity den datalari aliriz...
-            /* YA BOYLE RETURN OK() ICINDDE DONEBILIRZ YA DA DIREK STUDNTDTO YI RETURN EDEBILIRIZ...IKISI DE DOGRU
-            return new StudentDto
-            {
-                Id = existingStudent.Id,
-                Name = existingStudent.Name,
-                Email = existingStudent.Email,
-                Address = existingStudent.Address
+            //Biz boyle yaptik olmadi ama su anki calisan kod gibi kullaninca mapper i o zaman update gerceklesti...Yukarda existingStudent i biz AsNOTracking yaptik ve tracker e takip ettirmedigmz icin burda hata almadan, database de burasinin takip edilmesini ve update eedilmesni sagldik cunku id ler uzerinden takip yaptigi icin, 2 kez ayni id yi farkli db oprasynlarinda takip edemez...
+            var newStudent = _mapper.Map<Student>(studentDto);
+            _dbContext.Students.Update(existingStudent);
+            //_mapper.Map(studentDto, existingStudent);
 
-            }; */
-            //YA DA NOCONTENT() OLARAK DA RETURN YAPABILIRIZ BU SEFER DE BOYLE YAPALIM
+         //   _dbContext.Entry(existingStudent)
+         //.CurrentValues
+         //.SetValues(patchDocument);
+           await _dbContext.SaveChangesAsync();
             return NoContent();
-            //Patchi yaparken asagidaki paketleri de kullanarak daha profesyonel yapabiliriz...Biz biraz daha manuel yaptik!!
-            //Microsoft.AspNetCore.JsonPatch nu kullanarak da patch islemi yapabiliriz...Burda manuel olarak yaptik...
-            //Microsoft.AspNetCore.Mvc.NewtonsoftJson paketini yuklememiz lazim...Startup.cs veya Program.cs de AddNewtonsoftJson() eklemeliyiz...
-            //Burda dotnet core versiyonumuz hangisi ise o versiyona uygun paketleri yuklemeliyiz bu cok onemlidir
-            /*
-                <TargetFramework>net8.0</TargetFramework>
-                <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.0" />
-                <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
-
-            Simdi dostum biz ne yaptik yeni bir service yukledik ve bunu kullanacagiz...HER ZAMAN ICIN ILK YAPACAGIMZ IS SU GIDIP PROGRAM.CS DE ADDNEWTONSOFTJSON I EKLEMEK OLACAK...BU COK ONEMLIDIR...YOKSA CALISMAZ...
-            builder.Services.AddControllers().AddNewtonsoftJson();
-            Soru su..2 paket yukledim... <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.0" />
-                <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" /> ama 1 tane bunu ekledim veya register ettim...neden her ikisini de register etmedim...ve ben nerdeen bilecegim her nuget paketi yukledigmde hangi yukledegimi register etmemm lazim hangsini register a gerek yok...ve neye gore yapacagim bu register islemini..JSONPATCH TUM CRUD OPERATSYONLARINI DESTEKLIYOR AMA BIZ BURDA SADECE PATCH ILE ILGILENDIK...YANI PARTIAL UPDATE ICIN KULLANACAGIZ
-            The patch
-            [
-              { "op": "replace", "path": "/baz", "value": "boo" },=>update..icin
-              { "op": "add", "path": "/hello", "value": ["world"] },=>create icin
-              { "op": "remove", "path": "/foo" }=>delete icin
-            ]
-            Biz bunu kullanacagiz: { "op": "replace", "path": "/baz", "value": "boo" },=>update..icin
-            RequestBody:[
-              {
-                "path": "/name",//hangi alani modify etmek istiyoruz..
-                "op": "replace",//replace i kendisi veriyor yukarda update icin olan kisimda..
-                "value": "My doughter Zehra"
-              }
-            ]
-            Evet bu sekilde istek gonerilince sadece name propertisini gonderiyor digerlerin gondermiyor
-
-            [
-              {
-                "path": "/email",
-                "op": "replace",
-                "value": "zehramodified@gmail.com"
-              }
-            ]
-            boyle yaparsak da bu sefer de...neyi modify eder... dikkat...email i modify eder...sadece...
-            PEKI MULTIPLE PROPERTY UPDATE I NASIL YAPARIZ...O ZAMAN DA ASAGIDAKI GIBI GONDEREBILRIZ...
-            [
-              {
-                "path": "/name",
-                "op": "replace",
-                "value": "ZehraModified"
-              },
-            {
-                "path": "/email",
-                "op": "replace",
-                "value": "zehraupdated@gmail.com"
-              }
-            ]
-            Microsoft.AspNetCore.JsonPatch bir “kütüphane” (tipler/yardımcılar) sağlar; “servis” değildir.BU KUTUPHANEYI DE BU ARADA NASIL KULLANACAGIZ, CLIENT TARAFINDAN DATA GONDERIRKEN NASIL GONDERILMELI VS jsonpatch.com dan kontrol edeblriiz
-            Microsoft.AspNetCore.Mvc.NewtonsoftJson ise MVC’ye bir formatlayıcı (serializer) entegre eder; bu yüzden “register” edilir.
-
-            Soru:ormal create,update de data annotatin ile ModelState in hata eklenmesi BaseController uzerinden gerceklesiyordu ve ModelState te hata olunca ApiController buna 400 hata gonderiyordu da...burda nedden o gerceklesmiyor
-
-            cevap: [ApiController]’ın otomatik 400 davranışı yalnızca model binding aşamasında (aksiyon parametreleri bağlanırken) oluşan hatalara çalışır.
-            Sen ise hataları aksiyon içinde, patchDocument.ApplyTo(studentDTO, ModelState) çağrısıyla sonradan ModelState’e ekliyorsun. Bu yüzden otomatik 400 tetiklenmez; senin elle kontrol etmen gerekir.
-
-             */
         }
+
+        /*
+            EGER ORNEGIN SADECE DOB DateTime property sini degistirmek istersek:
+        endpoint’in şöyle bir şey bekliyor:
+        [HttpPatch("partial-update/{id:int}")]
+        public ActionResult<StudentDto> PartialUpdate(
+        [FromRoute] int id, 
+        [FromBody] JsonPatchDocument<StudentDto> patchDocument)
+        Bu da demek oluyor ki body bir JSON Patch dokümanı olacak:
+        Yani bir dizi operasyon: [{ op, path, value }] gibi.'
+
+        Sadece DOB alanını güncellemek
+        Property adı DOB olduğu için JSON Patch’te path şu olacak:
+        "/dob"   veya   "/DOB"
+        Eğer AddNewtonsoftJson() ile default ayar kullanıyorsan, property isimleri PascalCase kalır → DOB.
+        Swagger’da response JSON’unda alan adın dob mu DOB mu diye bak; aynı casing’i path’te kullan.
+        Örnek body (sadece DOB’u değiştirmek)
+        Swagger’da PATCH endpointine gidip body’yi şöyle yaz:
+
+        [
+          {
+            "op": "replace",
+            "path": "/dob",
+            "value": "2026-11-02T10:38:58.457Z"
+          }
+        ]
+
+        VEYA..ASAGIDAKI GIBI:
+        [
+          {
+            "op": "replace",
+            "path": "/dob",
+            "value": "2026-11-03T10:38:58.457Z"
+          }
+        ]
+
+        Bu arada bir kere biz bu icerigi ekldgimzde de swagger de execute edince hata alabilirz...Ondan dolayi oncelikle su asagdaki gerekliliklerin yapildigindan emin olalim:
+        a) NuGet paketleri
+
+            Proje (.csproj) içinde şunlar olmalı:
+             <ItemGroup>
+              <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
+              <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.0" />
+            </ItemGroup>
+
+        (Version numaraları senin .NET/ASP.NET Core sürümüne uygun olmalı; örnek diye 8.0.0 yazdım.)
+        b) Program.cs / Startup.cs içine kayıt
+
+        builder.Services
+            .AddControllers()
+            .AddNewtonsoftJson();  // ⬅️ BUNU EKLEMEK ZORUNDA
+
+        // Eski hali sadece şuna benzemesin:
+        // builder.Services.AddControllers();
+        Eğer builder.Services.AddControllers(); yazıp AddNewtonsoftJson() eklemezsen, ASP.NET Core System.Text.Json ile çalışır ve JsonPatchDocument<StudentDto> body’yi parse edemez → senin gördüğün hata.
+
+        Swagger’da doğru Content-Type
+
+        [
+          {
+            "op": "replace",
+            "path": "/dob",
+            "value": "2026-11-02T10:38:58.457Z"
+          }
+        ]
+        Ama üstte Media type kısmında:
+        application/json yerine
+        application/json-patch+json seçersen daha doğru olur.
+        Çoğu zaman ASP.NET Core ikisini de kabul eder ama JSON Patch için resmi tip application/json-patch+json.
+         */
     }
 }
-/*
- Microsoft.AspNetCore.Routing.Matching.AmbiguousMatchException: The request matched multiple endpoints. Matches: CollegaApp.Controllers.StudentController.GetStudentByEmail (CollegaApp) CollegaApp.Controllers.StudentController.GetStudentById (CollegaApp) CollegaApp.Controllers.StudentController.GetStudentByName (CollegaApp)
-
-     AmbiguousMatchException sebebi: birden fazla endpoint aynı URL şablonunu yakalıyor.
-
-    Senin denetleyicide çakışanlar:
-
-    [Route("{id}")] → her şeyle eşleşir (string de olur, int de)
-
-    [HttpGet("{name}")]
-
-    [HttpGet("{email}", Name="GetStudentByName")] → (ayrıca yanlış ad)
-
-    Ayrıca [Route("GetStudent/{studentId:int?}")] opsiyonel int ile bazı çağrılarda çakışmayı büyütüyor.
-
-    Attribute routing’de ekleme sırası önemli değildir; şablonlar aynı yolu yakalıyorsa framework hangi action’a gideceğini bilemez ve bu hatayı atar.
-
-
-ISTE ASAGIDAKI ENDPOINTLER I BIRLIKTE KULLANDIGMZDAN DOLAYI  YUKARDA KI HATA MESAJIN IALDIK:
-
-  //[HttpGet("GetStudent/{studentId:int}")]
-        [HttpGet]
-        [Route("GetStudent/{studentId:int?}")] //https://localhost:7014/api/Student/GetStudent/1  veya https://localhost:7014/api/Student/GetStudent/1
-        // public Student? Get(int? studentId)
-        public Student? Get([FromRoute(Name ="studentId")] int? id)
-        {
-            Student?  student = CollegeRepostory.Students.Find(s=>s.Id == id);//Student? List<Student>.Find(Predicate<Student> match);,the default value type T, reutrns the first element...Find(Predicate<T>) ⇒ tek öğe döndürür (yoksa null).
-            return student == null ? null : student;
-        }
-
-        [HttpGet]
-        [Route("{id}")]
-        public Student GetStudentById(int id)
-        {
-            return CollegeRepostory.Students.FirstOrDefault(s => s.Id == id)!;
-        }
-
-        [HttpGet("{name}")]
-        public Student? GetStudentByName(string name)
-        {
-            return CollegeRepostory.Students.FirstOrDefault(s=>s.Name.Equals(name,StringComparison.OrdinalIgnoreCase));
-        }
-
-        [HttpGet("{email}", Name = "GetStudentByName")]//GetStudentByName bu isim bu route a ozel isimdir
-        // HttpVerb attribute ile de route u tanimlayabilirz, istersek de Route attribute ile de tanimlayabiliriz...
-        //[Route("GetByName/{name}", Name = "GetStudentByName")]
-        public Student? GetStudentByEmail(string email)
-        {
-            Student? student = CollegeRepostory.Students.Find(s => s.Name.Equals(email, StringComparison.OrdinalIgnoreCase));
-            return student == null ? null : student;
-        }
-}
-
-
-Nasıl düzeltiriz? (temiz ve çakışmasız)
-
-ID için tip kısıtı kullan: {id:int}
-Ad ve e-posta için statik segment ekle: by-name/{name}, by-email/{email}
-Route “Name”’leri doğru ver (CreatedAtRoute vb. için)
-E-posta aksiyonunda yanlışlıkla Name ile arama yapmışsın; Email ile ara.
-
-COZUM ASAGDAKI GIBIDIR:
-
-     [HttpGet]
-        [Route("GetStudent/{studentId:int?}")] //https://localhost:7014/api/Student/GetStudent/1  veya https://localhost:7014/api/Student/GetStudent/1
-        // public Student? Get(int? studentId)
-        public Student? Get([FromRoute(Name ="studentId")] int? id)
-        {
-            Student?  student = CollegeRepostory.Students.Find(s=>s.Id == id);//Student? List<Student>.Find(Predicate<Student> match);,the default value type T, reutrns the first element...Find(Predicate<T>) ⇒ tek öğe döndürür (yoksa null).
-            return student == null ? null : student;
-        }
-
-        [HttpGet]
-        [Route("{id:int}", Name = "GetStudentById")]
-        public Student GetStudentById(int id)
-        {
-            return CollegeRepostory.Students.FirstOrDefault(s => s.Id == id)!;
-        }
-
-        [HttpGet("by-name/{name}", Name = "GetStudentByName")]
-        public Student? GetStudentByName(string name)
-        {
-            return CollegeRepostory.Students.FirstOrDefault(s=>s.Name.Equals(name,StringComparison.OrdinalIgnoreCase));
-        }
-
-        [HttpGet("by-email/{email}", Name = "GetStudentByEmail")]//GetStudentByName bu isim bu route a ozel isimdir
-        // HttpVerb attribute ile de route u tanimlayabilirz, istersek de Route attribute ile de tanimlayabiliriz...
-        //[Route("GetByName/{name}", Name = "GetStudentByName")]
-        public Student? GetStudentByEmail(string email)
-        {
-            Student? student = CollegeRepostory.Students.Find(s => s.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
-            return student == null ? null : student;
-        }
-
-
-Neden bu çözüm çalışıyor?
-
-{id:int} kısıtı, sayısal olmayan çağrıların ID endpoint’ine düşmesini engeller.
-
-by-name/... ve by-email/... statik ön ekleri sayesinde URL uzayı ayrışır, “tek parametreli her şey” şablonları kalmaz.
-
-Route Name değerleri benzersiz ve doğru: GetStudentById, GetStudentByName, GetStudentByEmail.
- */

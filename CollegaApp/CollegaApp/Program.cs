@@ -14,6 +14,7 @@ Log.Information("Starting web application");
 builder.Logging.AddSerilog();//hem inbuild hem de serilog u gostermesi icin buirayi kullaniriz
 */
 #endregion
+using CollegaApp.Configurations;
 using CollegaApp.Data;
 using CollegaApp.MyLogging;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ builder.Logging.AddLog4Net();
 
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -53,6 +54,11 @@ builder.Services.AddDbContext<CollegeDBContext>(options =>
     //Db yi sifirdan olusturmak ve tablolari da koda yazip kodun calismasi ile olusturulmasi yaklasimi olan code first ile olustururken burda var olan bir db ismi degil olusturulmaisn istedigmz db ismini gireriz burda yazdimgz gibi CollegeAppDB
     //options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));//Connectinostring
 });
+
+builder.Services.AddAutoMapper(cfg =>
+{
+
+}, typeof(AutoMapperConfig));
 
 
 var app = builder.Build();
