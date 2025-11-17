@@ -16,6 +16,7 @@ builder.Logging.AddSerilog();//hem inbuild hem de serilog u gostermesi icin buir
 #endregion
 using CollegaApp.Configurations;
 using CollegaApp.Data;
+using CollegaApp.Data.Repostory;
 using CollegaApp.MyLogging;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,6 +32,8 @@ builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Repository eşlemesi (ARAYÜZ -> SINIF)
+builder.Services.AddScoped<IStudentRepostory, StudentRepostory>();
 //builder.Services.AddScoped<IMyLogger, LogToFile>();
 builder.Services.AddScoped<IMyLogger, LogToDB>();
 

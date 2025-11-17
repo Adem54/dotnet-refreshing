@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using CollegaApp.Data;
+using CollegaApp.Data.Repostory;
 using CollegaApp.Dtos;
+using CollegaApp.Migrations;
 using CollegaApp.MyLogging;
 using log4net.Util.TypeConverters;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 namespace CollegaApp.Controllers
@@ -17,13 +18,13 @@ namespace CollegaApp.Controllers
     {
         private readonly ILogger<StudentController> _logger;
         private readonly IMapper _mapper;
-        private readonly CollegeDBContext _dbContext;
+        private readonly IStudentRepostory _studentRepostory;
 
-        public StudentController(ILogger<StudentController> logger, CollegeDBContext dbContext, IMapper mapper)
+        public StudentController(ILogger<StudentController> logger, CollegeDBContext dbContext, IMapper mapper, IStudentRepostory studentRepostory)
         {
             _logger = logger;
-            _dbContext = dbContext;
             _mapper = mapper;
+            _studentRepostory = studentRepostory;
         }
 
         //[HttpGet("GetStudents")] //HTTP GET isteği için bu metodu kullanır.//https://localhost:7014/api/Student/GetStudents
@@ -44,8 +45,10 @@ namespace CollegaApp.Controllers
 
               }).ToListAsync(); */
 
-            var students = await _dbContext.Students.ToListAsync();
-            var studentDTOData = _mapper.Map<List<StudentDto>>(students);//destination StudentDto, source is students..This is how we can auomatically transform, or copy from entity object to dto object
+            //var students = await _dbContext.Students.ToListAsync();
+            var students = await _studentRepostory.GetAllAsync();
+            var studentDTOData = _mapper.Map<List<StudentDto>>(students);
+            //destination StudentDto, source is students..This is how we can auomatically transform, or copy from entity object to dto object
             //students is List, StudentDto is single class..
             return Ok(studentDTOData);
 
@@ -98,13 +101,15 @@ namespace CollegaApp.Controllers
         [HttpGet]
         [Route("GetStudent/{studentId:int?}")] //https://localhost:7014/api/Student/GetStudent/1  veya https://localhost:7014/api/Student/GetStudent/1
         // public Student? Get(int? studentId)
-        public async Task<ActionResult<StudentDto?>> Get([FromRoute(Name = "studentId")] int? id)
+        public async Task<ActionResult<StudentDto?>> Get([FromRoute(Name = "studentId")] int id)
         {
             _logger.LogInformation(" Get Student by ID method is called");
             //Student? student = await _dbContext.Students.FindAsync(id);//Student?
-            Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s=>s.Id == id );//Student?
+            /*Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s=>s.Id == id );*///Student?
 
-            Student? student2 = _dbContext.Students.FirstOrDefault(s=>s.Id == id);
+            Student? student = await _studentRepostory.GetByIdAsync(id);
+
+            //Student? student2 = _dbContext.Students.FirstOrDefault(s=>s.Id == id);
                                                                                       //Find(id) imzasi bu sekildedir IQUERYABLE da, yani db de yapilan sorguda, ama Find(IPredicate) olarak calisir ram tarafinda dotnette...Find(s=>s.Id==id) seklinde... 
                                                                                       //FirsOrDefault=>Once match olan first dataya bakar bulursa onu alir devam eder, bulamazsa Default olarak null verir..
 
@@ -138,7 +143,7 @@ namespace CollegaApp.Controllers
                 return BadRequest();
             }
 
-            Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            Student? student = await _studentRepostory.GetByIdAsync(id);
             if(student is null)
             {
                 _logger.LogWarning("Not found, there is no student");
@@ -158,7 +163,8 @@ namespace CollegaApp.Controllers
             return Ok(studentDto);
         }
         //alpahabetik karakterler icin :alpha...Bunlara route constraints denir...
-        [HttpGet("by-name/{name:alpha}", Name = "GetStudentByName")]
+      //[HttpGet("by-name/{name:alpha}", Name = "GetStudentByName")]
+        [HttpGet("by-name/", Name = "GetStudentByName")]
 
         public async Task<ActionResult<StudentDto?>> GetStudentByName(string name)
         {
@@ -169,7 +175,7 @@ namespace CollegaApp.Controllers
             }
             //ActionResult<T> kullanarak ister direk T tipinde data dönebiliriz, istersek de IActionResult gibi davranabiliriz...
             //return CollegeRepostory.Students.FirstOrDefault(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-            Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Name == name);
+            Student? student = await _studentRepostory.GetByNameAsync(name);
             if (student is null)
             {
                 return NotFound($"{name} is not found!");
@@ -192,7 +198,7 @@ namespace CollegaApp.Controllers
         //[Route("GetByName/{name}", Name = "GetStudentByName")]
         public async Task<ActionResult<Student?>> GetStudentByEmail(string email)
         {
-            Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Email == email);
+            Student? student = await _studentRepostory.GetByEmailAsync(email);
 
             if (student is null)
             {
@@ -240,7 +246,7 @@ namespace CollegaApp.Controllers
             {
                 return BadRequest("Invalid ID");
             }
-            var student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            var student = await _studentRepostory.GetByIdAsync(id);
             if (student == null)
             {
                 _logger.LogError($"There is no student exist with this id: {id}");
@@ -286,9 +292,7 @@ namespace CollegaApp.Controllers
             //};
 
             var student = _mapper.Map<Student>(studentDto);
-
-            await _dbContext.Students.AddAsync(student);//unit of work
-            await _dbContext.SaveChangesAsync();//saved the db now...
+            var id = await _studentRepostory.CreateAsync(student);
             //Normally here we will save the student entity to database using async-await and entity framework..AYRICA DA DIKKAT EDELIM...KI BURDA SAVECHANGES GERCEKLESTGINDE..ARTIK student direk DB DE KAYDETTIT DATA ILE DOLDUREACK student i yani ID de yine doldurulmus olacak....
 
             //Return the created student dto with 201 status code
@@ -305,21 +309,18 @@ namespace CollegaApp.Controllers
         public async Task<ActionResult<bool>> Delete(int id)
         {
             if (id <= 0) return BadRequest($"{id} is either 0 or less");
-            var myStudent = await _dbContext.Students.FirstOrDefaultAsync(s => s.Id == id);
-            if (myStudent is null)
+            var studentToDelete = await _studentRepostory.GetByIdAsync(id);
+            if (studentToDelete is null)
             {
-                return NotFound($"{id} is not found");
-                // return false;
+                //return false;
+               return NotFound($"No student found with id: {id}");
             }
-
-            _dbContext.Students.Remove(myStudent);
-            await _dbContext.SaveChangesAsync();
+            await _studentRepostory.DeleteAsync(studentToDelete);
             //_dbContext.Students.Where(s => s.Id == id).ExecuteDelete(); bu da tek basina delete islemine alternatif bu direk db den siler bu sekilde
-            
             return true;
         }
 
-     //   [HttpPut("update/{id:int}", Name = "ModifyStudent")] //FromRoute, 
+        //[HttpPut("update/{id:int}", Name = "ModifyStudent")] //FromRoute, 
         [HttpPut] //FromRoute,
         [Route("update/{id}")]
         //Burdan id:int sayesinde route constraint ile, id string gonderilme durumunda hata alinir 400 hatasi yani daha action a datalari gonderemeden 400 bad request hatasi alinir...
@@ -340,8 +341,8 @@ namespace CollegaApp.Controllers
             //3.Id var ve Student veritabanindan bulundu ise simdi de gondeirlen dto yu bulunan Student e update et...mapping islemi yap..Manuel yapabiliriz, kendi extension metodlarimzi olusturabilirz ya da AutoMapper kullanabilirz 
             //4.Gelen veriyi donusturdugmz Student i Entityframework de veritabaninda update etmeliyz       dbContext.Entry(existingProduct).CurrentValues.SetValues(updateProductDto.ToEntity());	Tabi biz Studente mapping yapma islemini entityframwork update islemi parametresinde de yapabiliriz burdaki gibi..ama kafamiz ned olmasi icin ayri ayri ilk basta daha temiz olur
             //5.Bu islem de hallolduguna gore geriye donecegimz response u dto olarak donmek..Mevcut var olan student update edilen student i alip reseponse edecegimz StudentDetailDto ya mapping yapip kullanicya return ederiz...		
-            var existingStudent = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
-            if (existingStudent is null) return NotFound($"{id} is not found");
+            //var existingStudent = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            //if (existingStudent is null) return NotFound($"{id} is not found");
 
             //1.yontem
             //  _dbContext.Entry(existingStudent)
@@ -362,11 +363,14 @@ namespace CollegaApp.Controllers
             //    Email = updateStudentDto.Email,
             //    DOB = updateStudentDto.DOB
             //};
+            Student? existingStudent = await _studentRepostory.GetByIdAsync(id);
 
-            var newRecord = _mapper.Map<Student>(updateStudentDto);
+            if (existingStudent is null) return NotFound($"{id} is not found");
+             _mapper.Map(updateStudentDto, existingStudent);
 
-             _dbContext.Students.Update(newRecord);
-            await _dbContext.SaveChangesAsync();
+            // _dbContext.Students.Update(newRecord);
+            //await _dbContext.SaveChangesAsync();
+            await _studentRepostory.UpdateAsync(existingStudent);
 
             /*
              'Student' cannot be tracked because another instance with the same key value for {'Id'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the 
@@ -374,10 +378,10 @@ namespace CollegaApp.Controllers
 
             var studentDto = new StudentDto
             {
-                StudentName = newRecord.Name,
-                Email = newRecord.Email, 
-                Address = newRecord.Address,
-                DOB = newRecord.DOB.ToShortDateString()
+                StudentName = existingStudent.Name,
+                Email = existingStudent.Email, 
+                Address = existingStudent.Address,
+                DOB = existingStudent.DOB.ToShortDateString()
             }; 
 
             // return NoContent();//204 No Content doneriz cunku update islemi basarili oldu ama geriye donecek data yok..Eger NoContent donerrsek o zaman ActionResult<StudentDto> degil de IActionResult kullanmaliyiz method signature da
@@ -416,7 +420,7 @@ namespace CollegaApp.Controllers
 
             //1.Validation gonderilen Dto null mu, id veritabaninda var mi?(id nin route constraint ile int olmasi saglandi..int olmazsa zaten actiona gelmez 400 badrequest doner)
             if (patchDocument is null  || id <= 0 ) return BadRequest("Student object can not be null");
-            Student? existingStudent = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s=>s.Id == id);
+            Student? existingStudent = await _studentRepostory.GetByIdAsync(id, true);
             if (existingStudent is null) return NotFound($"{id} is not found");
 
             //var studentDTO = new StudentDto
@@ -444,14 +448,16 @@ namespace CollegaApp.Controllers
             //existingStudent.DOB = Convert.ToDateTime(studentDto.DOB);//string date i DateTime a cevirmemiz gerekiyor
 
             //Biz boyle yaptik olmadi ama su anki calisan kod gibi kullaninca mapper i o zaman update gerceklesti...Yukarda existingStudent i biz AsNOTracking yaptik ve tracker e takip ettirmedigmz icin burda hata almadan, database de burasinin takip edilmesini ve update eedilmesni sagldik cunku id ler uzerinden takip yaptigi icin, 2 kez ayni id yi farkli db oprasynlarinda takip edemez...
-            var newStudent = _mapper.Map<Student>(studentDto);
-            _dbContext.Students.Update(existingStudent);
+             existingStudent = _mapper.Map<Student>(studentDto);
+            //_dbContext.Students.Update(newStudent);
+            await _studentRepostory.UpdateAsync(existingStudent);
+            // await _dbContext.SaveChangesAsync();
             //_mapper.Map(studentDto, existingStudent);
 
-         //   _dbContext.Entry(existingStudent)
-         //.CurrentValues
-         //.SetValues(patchDocument);
-           await _dbContext.SaveChangesAsync();
+            //   _dbContext.Entry(existingStudent)
+            //.CurrentValues
+            //.SetValues(patchDocument);
+            // await _dbContext.SaveChangesAsync();
             return NoContent();
         }
 

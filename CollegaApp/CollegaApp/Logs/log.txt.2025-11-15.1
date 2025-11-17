@@ -1,0 +1,18 @@
+2025-11-15 17:06:39,057  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (5ms) [Parameters=[@p0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+DELETE FROM [Students]
+OUTPUT 1
+WHERE [Id] = @p0;
+ 2025-11-15 17:06:45,651  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
+FROM [Students] AS [s]
+ 2025-11-15 17:09:37,990  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (11ms) [Parameters=[@__name_0='?' (Size = 250)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
+FROM [Students] AS [s]
+WHERE [s].[Name] = @__name_0
+ 2025-11-15 17:10:59,319  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (11ms) [Parameters=[@__email_0='?' (Size = 250)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
+FROM [Students] AS [s]
+WHERE [s].[Email] = @__email_0
+ 

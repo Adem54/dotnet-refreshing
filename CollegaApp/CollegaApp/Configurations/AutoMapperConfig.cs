@@ -26,10 +26,10 @@ namespace CollegaApp.Configurations
             CreateMap<UpdateStudentDto, Student>().ReverseMap();
             //Artik bundan sonra tum dto-entity mappinglerimizi buraya yerlestirebiliriz...
             // CreateMap<CourseDto, Course>().ReverseMap();
-
+            CreateMap<StudentDto, Student>().ForMember(std => std.Name, opt => opt.MapFrom(s => s.StudentName)).ReverseMap();
             //CreateMap<StudentDto, Student>().ReverseMap().AddTransform<string>(n=>string.IsNullOrEmpty(n)?"No address found": n);
             //Bu biraz riskli birsey bu tum kolonlardaki null olan alanlar icin calisir ama biz spesifik olarak address alani icin calissin istiyorum mesela...
-            CreateMap<StudentDto, Student>().ReverseMap().ForMember(sdto=>sdto.Address, opt=>opt.MapFrom(x=>x.Address)).AddTransform<string>(n=>string.IsNullOrEmpty(n) ? "No address found" : n);
+            //CreateMap<StudentDto, Student>().ReverseMap().ForMember(sdto=>sdto.Address, opt=>opt.MapFrom(x=>x.Address)).AddTransform<string>(n=>string.IsNullOrEmpty(n) ? "No address found" : n);
            // CreateMap<StudentDto, Student>().ReverseMap().AddTransform<string>(n =>Convert.To );
         }
     }
