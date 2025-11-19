@@ -1,72 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace CollegaApp.Data.Repostory
+﻿namespace CollegaApp.Data.Repostory
 {
     //Simdi isimlere dikkat edelim...biz 
     public interface IStudentRepostory:IEntityRepostory<Student>
     {
-        private readonly CollegeDBContext _dbContext;
+        //Task<List<Student>> GetAllAsync();
+        //Task<Student?> GetByIdAsync(int id, bool isNoTracking= false);
+        //Task<Student?> GetByNameAsync(string name);
+        //Task<Student?> GetByEmailAsync(string email);
+        //Task<int> CreateAsync(Student student);
+        //Task<int> UpdateAsync(Student student);//
+        //Task<bool> DeleteAsync(Student studentToDelete);
 
-        public StudentRepostory(CollegeDBContext dBContext)
-        {
-            _dbContext = dBContext;
-        }
+        //Bu yoruma aldgimz methodlarin hepsi zaten artik common repostory den gelecek buraya..Biz IEntityRepostory yi Student tablosu icin StudentReposotry icin implemente ediyoruz kullanabilmek icin
 
-        public async Task<int> CreateAsync(Student student)
-        {
-            await _dbContext.Students.AddAsync(student);//unit of work
-            await _dbContext.SaveChangesAsync();//saved the db now...
-            return student.Id;
-        }
-
-        public async Task<bool> DeleteAsync(Student studentToDelete)
-        {
-            _dbContext.Students.Remove(studentToDelete);
-            await _dbContext.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<Student>> GetAllAsync()
-        {
-            return await _dbContext.Students.AsNoTracking().ToListAsync();
-        }
-
-        public async Task<Student?> GetByEmailAsync(string email)
-        {
-            return await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Email == email);
-        }
-
-        public async Task<Student?> GetByIdAsync(int id, bool isNoTracking = false)
-        {
-            if (isNoTracking) return await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id) ?? null;
-            return await _dbContext.Students.FirstOrDefaultAsync(s => s.Id == id) ?? null;
-        }
-
-        public async Task<Student?> GetByNameAsync(string name)
-        {
-            // return await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Name == name) ?? null;
-            //return await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Name.ToLower().Equals(name));
-            //return await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Name.ToLower().Contains(name.ToLower()));
-
-            return await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => EF.Functions.Collate(s.Name, "Norwegian_100_CI_AS") == name) ?? null;
-
-
-            //        var list = await _dbContext.Students.AsNoTracking()
-            //.Where(x => EF.Functions.Like(
-            //    EF.Functions.Collate(x.Name, "Turkish_CI_AS"),
-            //    name + "%"))
-            //.ToListAsync();
-
-        }
-
-        public async Task<int> UpdateAsync(Student student)
-        {
-
-            _dbContext.Students.Update(student);
-            await _dbContext.SaveChangesAsync();
-            return student.Id;
-        }
-
-
+        //Add the specific signature for Student...and also implement to the common repostory  
+        Task<List<Student>> GetStudentsByFeeStatusAsync(int feeStatus);
     }
 }

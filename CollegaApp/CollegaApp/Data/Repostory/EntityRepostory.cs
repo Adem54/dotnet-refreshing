@@ -30,24 +30,6 @@ namespace CollegaApp.Data.Repostory
            // return entity.Id; //IEntity kısıtı sayesinde entity.Id güvenle dönebilirsin.HARIKA BESTPRACTISE.......Generic constraint olarak class,IEntity ekledik ve IEnity de Id barindiriyor artik!!!!!!!!Biz enityt deki id yi donmek istese idik de bu anlatgimz sekilde donebilirdik..ama biz entity i return etmek istiyoruz
              return entity;
 
-            /* YONTEM-2
-            await _dbContext.Set<T>().AddAsync(entity);//unit of work
-            await _dbContext.SaveChangesAsync();//saved the db now...
-            return entity.Id;//HARIKA BESTPRACTISE..NORMALDE .Id yapinca bulamiyordu bu Enity de Id propertysinin oldugunu ve hata veriyordu, ne zaman ki yukarda Generic constraint olarak class,IEntity ekledik ve IEnity de Id barindiriyor o zaman iste bu hata ortadan kalkti
-            */
-            /* YONTEM-3
-            var addedEntity = _dbContext.Entry(entity);
-            addedEntity.State = EntityState.Added;
-            _dbContext.SaveChanges();
-            return entity.Id;///HARIKA BESTPRACTISE.......Generic constraint olarak class,IEntity ekledik ve IEnity de Id barindiriyor artik!!!!!!!!
-
-            Entry(entity) neyi temsil eder?
-            _dbContext.Entry(entity) → tek bir entity örneğine ait izleme (tracking) metadatası döner (EntityEntry<T>):
-            Entry(entity).State → Added/Modified/Deleted/Unchanged/Detached
-            CurrentValues / OriginalValues → alan bazlı değerler
-            Property(p => p.Name).IsModified = true → alan bazlı update işaretleme
-            Yani DbSet<T> “tablo+işlemler”, Entry(entity) ise tek bir entity’nin EF’deki durumu.
-            */
         }
 
         public async Task<bool> DeleteAsync(T entityToDelete)
@@ -63,21 +45,9 @@ namespace CollegaApp.Data.Repostory
             return await _dbSet.AsNoTracking().ToListAsync();
         }
 
-     //   public async Task<T?> GetByEmailAsync(string email)
-        public async Task<T?> GetByEmailAsync(Expression<Func<T,bool>> filter)
-        {
-            //Burda da normalde s.Email de hata verdi bulamadi, ama biz IEntiy yi Student e implement e ettrdik ve I Entity ye Id nin yaninda Email ve Name i e ekledik sonra hata ortadan kalkti
-            //Simdi biz burda spesifik olarak bir Student,Course,Teacher entity ye ait bir propertyi kullanmamamiz gerekiyor ve burdaki lambda lari da genellestirmemiz ve oraya bizim predicate, yani delegate kullanmamiz gerekiyor...
-            // return await _dbSet.AsNoTracking().FirstOrDefaultAsync(s => s.Email == email);
-            return await _dbSet.AsNoTracking().FirstOrDefaultAsync(filter);
-            //DIKKAT DELEGATE DEGSKENINI VERDIK YANI, PREDICATE YANI FUN<T,BOOL>> BOOL DONEN, ARROW FUNC I TUTAN DEGSKENI EXPRESSINO ILE ATADIK...CUNKU IQUERABLE DA SQL QUERY DE KULLANILACAGI ICIN, EXPRESSION ILE DATA OLARAK TUTYOR BU PREDICATE I KI SQL QUERY DE KULLANILIRKEN ANLAYABILSIN
-
-            //Expression<Func<T,bool>> = “veri” (ifadenin ağacı). EF Core bunu okur ve SQL’e çevirir.
-           // Func<T, bool>(predicate / delegate) = “çalıştırılabilir kod”. EF Core bunu SQL’e çeviremez; ancak bellekte çalıştırılır.
-        }
 
         //  public async Task<T?> GetByIdAsync(int id, bool isNoTracking = false)
-        public async Task<T?> GetByIdAsync(Expression<Func<T, bool>> filter, bool isNoTracking = false)
+        public async Task<T?> GetAsync(Expression<Func<T, bool>> filter, bool isNoTracking = false)
         {
             //if (isNoTracking) return await _dbSet.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id) ?? null;
             //return await _dbSet.FirstOrDefaultAsync(s => s.Id == id) ?? null;
@@ -87,33 +57,12 @@ namespace CollegaApp.Data.Repostory
             return await _dbSet.FirstOrDefaultAsync(filter) ?? null;
             //Simdi biz burda spesifik olarak bir Student,Course,Teacher entity ye ait bir propertyi kullanmamamiz gerekiyor ve burdaki lambda lari da genellestirmemiz ve oraya bizim predicate, yani delegate kullanmamiz gerekiyor...
         }
-
-       // public async Task<T?> GetByNameAsync(string name)
-        public async Task<T?> GetByNameAsync(Expression<Func<T,bool>> filter)
-        {
-            // return await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Name == name) ?? null;
-            //return await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Name.ToLower().Equals(name));
-            //return await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Name.ToLower().Contains(name.ToLower()));
-
-            // return await _dbSet.AsNoTracking().FirstOrDefaultAsync(s => EF.Functions.Collate(s.Name, "Norwegian_100_CI_AS") == name) ?? null;
-            //Simdi biz burda spesifik olarak bir Student,Course,Teacher entity ye ait bir propertyi kullanmamamiz gerekiyor ve burdaki lambda lari da genellestirmemiz ve oraya bizim predicate, yani delegate kullanmamiz gerekiyor...
-            return await _dbSet.AsNoTracking().FirstOrDefaultAsync(filter) ?? null;
-            //DIKKAT DELEGATE DEGSKENINI VERDIK YANI, PREDICATE YANI FUN<T,BOOL>> BOOL DONEN, ARROW FUNC I TUTAN DEGSKENI EXPRESSINO ILE ATADIK...CUNKU IQUERABLE DA SQL QUERY DE KULLANILACAGI ICIN, EXPRESSION ILE DATA OLARAK TUTYOR BU PREDICATE I KI SQL QUERY DE KULLANILIRKEN ANLAYABILSIN
-
-            //        var list = await _dbContext.Students.AsNoTracking()
-            //.Where(x => EF.Functions.Like(
-            //    EF.Functions.Collate(x.Name, "Turkish_CI_AS"),
-            //    name + "%"))
-            //.ToListAsync();
-        }
-
         public async Task<T> UpdateAsync(T entity)
         {
             _dbSet.Update(entity);
             await _dbContext.SaveChangesAsync();
             return entity;
         }
-
     }
 }
 

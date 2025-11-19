@@ -7,6 +7,7 @@ using CollegaApp.MyLogging;
 using log4net.Util.TypeConverters;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 namespace CollegaApp.Controllers
@@ -18,7 +19,10 @@ namespace CollegaApp.Controllers
     {
         private readonly ILogger<StudentController> _logger;
         private readonly IMapper _mapper;
+        //private readonly IStudentRepostory _studentRepostory;
+      //  private readonly IEntityRepostory<Student> _studentRepostory;
         private readonly IStudentRepostory _studentRepostory;
+        //IEntityRepostory we are using application level repostory pattern..not studentlevel.
 
         public StudentController(ILogger<StudentController> logger, CollegeDBContext dbContext, IMapper mapper, IStudentRepostory studentRepostory)
         {
@@ -107,11 +111,12 @@ namespace CollegaApp.Controllers
             //Student? student = await _dbContext.Students.FindAsync(id);//Student?
             /*Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s=>s.Id == id );*///Student?
 
-            Student? student = await _studentRepostory.GetByIdAsync(id);
+           // Student? student = await _studentRepostory.GetByIdAsync(id);
+            Student? student = await _studentRepostory.GetAsync(s=>s.Id == id);
 
             //Student? student2 = _dbContext.Students.FirstOrDefault(s=>s.Id == id);
-                                                                                      //Find(id) imzasi bu sekildedir IQUERYABLE da, yani db de yapilan sorguda, ama Find(IPredicate) olarak calisir ram tarafinda dotnette...Find(s=>s.Id==id) seklinde... 
-                                                                                      //FirsOrDefault=>Once match olan first dataya bakar bulursa onu alir devam eder, bulamazsa Default olarak null verir..
+            //Find(id) imzasi bu sekildedir IQUERYABLE da, yani db de yapilan sorguda, ama Find(IPredicate) olarak calisir ram tarafinda dotnette...Find(s=>s.Id==id) seklinde... 
+            //FirsOrDefault=>Once match olan first dataya bakar bulursa onu alir devam eder, bulamazsa Default olarak null verir..
 
             if (student is null)
             {
@@ -143,8 +148,9 @@ namespace CollegaApp.Controllers
                 return BadRequest();
             }
 
-            Student? student = await _studentRepostory.GetByIdAsync(id);
-            if(student is null)
+          //  Student? student = await _studentRepostory.GetByIdAsync(id);
+            Student? student = await _studentRepostory.GetAsync(s=>s.Id == id);
+            if (student is null)
             {
                 _logger.LogWarning("Not found, there is no student");
                 return NotFound();
@@ -175,7 +181,9 @@ namespace CollegaApp.Controllers
             }
             //ActionResult<T> kullanarak ister direk T tipinde data dönebiliriz, istersek de IActionResult gibi davranabiliriz...
             //return CollegeRepostory.Students.FirstOrDefault(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-            Student? student = await _studentRepostory.GetByNameAsync(name);
+            //Artik parametre de predcate-lambda(arrow-func) olacak..
+           // Student? student = await _studentRepostory.GetByNameAsync(name); bu sadece Student e ozel repostory yazdigmzda boyle idi ama artik tum, entiytlere yonelik bir repostry i olusturduk
+            Student? student = await _studentRepostory.GetAsync(s => EF.Functions.Collate(s.Name, "Norwegian_100_CI_AS") == name);
             if (student is null)
             {
                 return NotFound($"{name} is not found!");
@@ -198,7 +206,8 @@ namespace CollegaApp.Controllers
         //[Route("GetByName/{name}", Name = "GetStudentByName")]
         public async Task<ActionResult<Student?>> GetStudentByEmail(string email)
         {
-            Student? student = await _studentRepostory.GetByEmailAsync(email);
+           // Student? student = await _studentRepostory.GetByEmailAsync(email);
+            Student? student = await _studentRepostory.GetAsync(s=>s.Email== email);
 
             if (student is null)
             {
@@ -246,7 +255,8 @@ namespace CollegaApp.Controllers
             {
                 return BadRequest("Invalid ID");
             }
-            var student = await _studentRepostory.GetByIdAsync(id);
+          //  var student = await _studentRepostory.GetByIdAsync(id);
+            var student = await _studentRepostory.GetAsync(s=>s.Id == id);
             if (student == null)
             {
                 _logger.LogError($"There is no student exist with this id: {id}");
@@ -292,11 +302,11 @@ namespace CollegaApp.Controllers
             //};
 
             var student = _mapper.Map<Student>(studentDto);
-            var id = await _studentRepostory.CreateAsync(student);
+            var createdStudent = await _studentRepostory.CreateAsync(student);
             //Normally here we will save the student entity to database using async-await and entity framework..AYRICA DA DIKKAT EDELIM...KI BURDA SAVECHANGES GERCEKLESTGINDE..ARTIK student direk DB DE KAYDETTIT DATA ILE DOLDUREACK student i yani ID de yine doldurulmus olacak....
 
             //Return the created student dto with 201 status code
-            StudentDto responseDto = new StudentDto { Id = student.Id, StudentName = student.Name, Email = student.Email, Address = student.Address };
+            StudentDto responseDto = new StudentDto { Id = createdStudent.Id, StudentName = createdStudent.Name, Email = createdStudent.Email, Address = createdStudent.Address };
 
             //1.parameter route u hangi action ın kullanacagiz onu belirtiyoruz, 2.parametrede ise o action a gonderilecek route parametrelerini veriyoruz..yani GetStudentById action ına id parametresini gonderiyoruz
             //"GetStudentById", new { id=responseDto.Id  } bu iki data, link olarak newly created resource un url sini belirtir...
@@ -309,7 +319,8 @@ namespace CollegaApp.Controllers
         public async Task<ActionResult<bool>> Delete(int id)
         {
             if (id <= 0) return BadRequest($"{id} is either 0 or less");
-            var studentToDelete = await _studentRepostory.GetByIdAsync(id);
+          //  var studentToDelete = await _studentRepostory.GetByIdAsync(id);
+            var studentToDelete = await _studentRepostory.GetAsync(s=>s.Id == id);
             if (studentToDelete is null)
             {
                 //return false;
@@ -363,7 +374,8 @@ namespace CollegaApp.Controllers
             //    Email = updateStudentDto.Email,
             //    DOB = updateStudentDto.DOB
             //};
-            Student? existingStudent = await _studentRepostory.GetByIdAsync(id);
+          //  Student? existingStudent = await _studentRepostory.GetByIdAsync(id);
+            Student? existingStudent = await _studentRepostory.GetAsync(s=>s.Id == id);
 
             if (existingStudent is null) return NotFound($"{id} is not found");
              _mapper.Map(updateStudentDto, existingStudent);
@@ -420,7 +432,8 @@ namespace CollegaApp.Controllers
 
             //1.Validation gonderilen Dto null mu, id veritabaninda var mi?(id nin route constraint ile int olmasi saglandi..int olmazsa zaten actiona gelmez 400 badrequest doner)
             if (patchDocument is null  || id <= 0 ) return BadRequest("Student object can not be null");
-            Student? existingStudent = await _studentRepostory.GetByIdAsync(id, true);
+          //  Student? existingStudent = await _studentRepostory.GetByIdAsync(id, true);
+            Student? existingStudent = await _studentRepostory.GetAsync(s=>s.Id == id, true);
             if (existingStudent is null) return NotFound($"{id} is not found");
 
             //var studentDTO = new StudentDto

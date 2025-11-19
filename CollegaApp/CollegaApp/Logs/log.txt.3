@@ -1,14 +1,18 @@
-2025-11-16 22:48:24,609  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (52ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
-FROM [Students] AS [s]
-WHERE [s].[Id] = @__id_0
- 2025-11-16 22:48:24,859  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (5ms) [Parameters=[@p0='?' (Size = 500), @p1='?' (DbType = DateTime2), @p2='?' (Size = 250), @p3='?' (Size = 250)], CommandType='Text', CommandTimeout='30']
+2025-11-18 00:31:44,413  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (7ms) [Parameters=[@p0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
 SET IMPLICIT_TRANSACTIONS OFF;
 SET NOCOUNT ON;
-INSERT INTO [Students] ([Address], [DOB], [Email], [Name])
-OUTPUT INSERTED.[Id]
-VALUES (@p0, @p1, @p2, @p3);
- 2025-11-16 22:50:38,092  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (4ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+DELETE FROM [Students]
+OUTPUT 1
+WHERE [Id] = @p0;
+ 2025-11-18 00:32:03,048  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (14ms) [Parameters=[@__name_1='?' (Size = 250)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
+FROM [Students] AS [s]
+WHERE [s].[Name] COLLATE Norwegian_100_CI_AS = @__name_1
+ 2025-11-18 00:32:22,155  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (3ms) [Parameters=[@__email_0='?' (Size = 250)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
+FROM [Students] AS [s]
+WHERE [s].[Email] = @__email_0
+ 2025-11-18 00:32:40,240  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (5ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
 SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
 FROM [Students] AS [s]
 WHERE [s].[Id] = @__id_0

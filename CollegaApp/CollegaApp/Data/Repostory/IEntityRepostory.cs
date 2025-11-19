@@ -8,9 +8,9 @@ namespace CollegaApp.Data.Repostory
     public interface IEntityRepostory<T>
     {
         Task<List<T>> GetAllAsync();
-        Task<T?> GetByIdAsync(Expression<Func<T,bool>> filter, bool isNoTracking = false);
-        Task<T?> GetByNameAsync(Expression<Func<T, bool>> filter);
-        Task<T?> GetByEmailAsync(Expression<Func<T, bool>> filter);
+        Task<T?> GetAsync(Expression<Func<T,bool>> filter, bool isNoTracking = false);
+        //Task<T?> GetByNameAsync(Expression<Func<T, bool>> filter);
+        //Task<T?> GetByEmailAsync(Expression<Func<T, bool>> filter);
         Task<T> CreateAsync(T entity);//entity yrine, dbRecord,college...vs olablirdi..
         Task<T> UpdateAsync(T entity);//
         Task<bool> DeleteAsync(T entityToDelete);

@@ -1,11 +1,7 @@
-2025-11-16 22:43:19,950  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (2ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
-FROM [Students] AS [s]
-WHERE [s].[Id] = @__id_0
- 2025-11-16 22:43:19,976  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (4ms) [Parameters=[@p0='?' (Size = 500), @p1='?' (DbType = DateTime2), @p2='?' (Size = 250), @p3='?' (Size = 250)], CommandType='Text', CommandTimeout='30']
-SET IMPLICIT_TRANSACTIONS OFF;
-SET NOCOUNT ON;
-INSERT INTO [Students] ([Address], [DOB], [Email], [Name])
-OUTPUT INSERTED.[Id]
-VALUES (@p0, @p1, @p2, @p3);
+2025-11-18 00:30:10,910  INFO Microsoft.Hosting.Lifetime.? [?] - MESSAGE: Now listening on: https://localhost:7014
+ 2025-11-18 00:30:11,067  INFO Microsoft.Hosting.Lifetime.? [?] - MESSAGE: Now listening on: http://localhost:5028
+ 2025-11-18 00:30:11,246  INFO Microsoft.Hosting.Lifetime.OnApplicationStarted [0] - MESSAGE: Application started. Press Ctrl+C to shut down.
+ 2025-11-18 00:30:11,256  INFO Microsoft.Hosting.Lifetime.OnApplicationStarted [0] - MESSAGE: Hosting environment: Development
+ 2025-11-18 00:30:11,260  INFO Microsoft.Hosting.Lifetime.Invoke [0] - MESSAGE: Content root path: C:\Users\Hp35\Desktop\Projects\Dotnet\dotnet-refreshing\CollegaApp\CollegaApp
+ 2025-11-18 00:30:59,390  WARN LuckyPennySoftware.AutoMapper.License.Validate [0] - MESSAGE: You do not have a valid license key for the Lucky Penny software AutoMapper. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
  

@@ -33,7 +33,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Repository eşlemesi (ARAYÜZ -> SINIF)
-builder.Services.AddScoped<IStudentRepostory, StudentRepostory>();
+//builder.Services.AddScoped<IStudentRepostory, StudentRepostory>();
+//Simdi bu register islemini de yapmamiz gerekiyor...
+//builder.Services.AddScoped<IEntityRepostory<Student>, EntityRepostory<Student>>();
+//Bu sadece Student için çalışır. Yarın Course da isterse, ayrı ayrı kayıt yazman gerekir. O yüzden genelde tercih edilmez (özel bir implementasyon/özel yaşam döngüsü vermek istediğinde istisnaen kullanılır).
+//Not: Her iki kaydı birden eklersen ve IEntityRepostory<Student> istersen, kapalı (Student) olan daha spesifik kayda gider; aynı service type için birden fazla kayıt varsa son eklenen kazanır.
+
+//GEneric types..registriation for DEP-INJ(DI)..BESTPRACTISE...Genel (open generic) kayıt yapiliyor.
+builder.Services.AddScoped(typeof(IEntityRepostory<>), typeof(EntityRepostory<>));
+//Bu satır, IEntityRepostory<Student>, IEntityRepostory<Course>, IEntityRepostory<Teacher>… gibi tüm kapalı tipleri otomatik çözer. Controller’da yaptığın:
+//public StudentController(IEntityRepostory<Student> repo, ...)
+
+
+
 //builder.Services.AddScoped<IMyLogger, LogToFile>();
 builder.Services.AddScoped<IMyLogger, LogToDB>();
 
