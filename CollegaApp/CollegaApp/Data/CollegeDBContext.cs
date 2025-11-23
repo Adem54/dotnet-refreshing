@@ -16,14 +16,18 @@ namespace CollegaApp.Data
         }
         public DbSet<Student> Students { get; set; } = null!;
 
+        public DbSet<Department> Depertments { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //Studenttable-config 
             modelBuilder.ApplyConfiguration(new StudentConfig());
 
             //Table-2
+            modelBuilder.ApplyConfiguration(new DepartmentConfig());
+
             //Table-3
         }
-            
+
     }
 }

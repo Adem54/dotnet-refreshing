@@ -1,17 +1,13 @@
-2025-11-18 00:35:24,784  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (4ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
-FROM [Students] AS [s]
-WHERE [s].[Id] = @__id_0
- 2025-11-18 00:35:53,204  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (5ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
-FROM [Students] AS [s]
-WHERE [s].[Id] = @__id_0
- 2025-11-18 00:37:49,618  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (26ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
-FROM [Students] AS [s]
-WHERE [s].[Id] = @__id_0
- 2025-11-18 00:39:46,918  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (14ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
-FROM [Students] AS [s]
-WHERE [s].[Id] = @__id_0
+2025-11-20 00:10:50,873  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+UPDATE [Students] SET [DepartmentId] = NULL
+WHERE [Id] = 1;
+SELECT @@ROWCOUNT;
+ 2025-11-20 00:10:50,880  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+UPDATE [Students] SET [DepartmentId] = NULL
+WHERE [Id] = 2;
+SELECT @@ROWCOUNT;
+ 2025-11-20 00:10:50,920  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (39ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+CREATE INDEX [IX_Students_DepartmentId] ON [Students] ([DepartmentId]);
+ 2025-11-20 00:10:50,933  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (12ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ALTER TABLE [Students] ADD CONSTRAINT [FK_Students_Department] FOREIGN KEY ([DepartmentId]) REFERENCES [Departments] ([Id]);
  

@@ -1,19 +1,12 @@
-2025-11-18 00:31:44,413  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (7ms) [Parameters=[@p0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SET IMPLICIT_TRANSACTIONS OFF;
-SET NOCOUNT ON;
-DELETE FROM [Students]
-OUTPUT 1
-WHERE [Id] = @p0;
- 2025-11-18 00:32:03,048  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (14ms) [Parameters=[@__name_1='?' (Size = 250)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
-FROM [Students] AS [s]
-WHERE [s].[Name] COLLATE Norwegian_100_CI_AS = @__name_1
- 2025-11-18 00:32:22,155  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (3ms) [Parameters=[@__email_0='?' (Size = 250)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
-FROM [Students] AS [s]
-WHERE [s].[Email] = @__email_0
- 2025-11-18 00:32:40,240  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (5ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [s].[Id], [s].[Address], [s].[DOB], [s].[Email], [s].[Name]
-FROM [Students] AS [s]
-WHERE [s].[Id] = @__id_0
+2025-11-20 00:10:50,674  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+ 2025-11-20 00:10:50,680  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ 2025-11-20 00:10:50,711  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (29ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+ 2025-11-20 00:10:50,723  INFO Microsoft.EntityFrameworkCore.Migrations.? [?] - MESSAGE: Applying migration '20251119230700_AddDepartmentTable'.
+ 2025-11-20 00:10:50,790  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (35ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ALTER TABLE [Students] ADD [DepartmentId] int NULL;
  
