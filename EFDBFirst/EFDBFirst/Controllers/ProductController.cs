@@ -18,10 +18,11 @@ namespace EFDBFirst.Controllers
         [HttpGet]
         [Route("All", Name = "GetAllProducts")]
 
-        public async Task<IEnumerable<Product>> GetAll()
+        public async Task<IEnumerable<Order>> GetAll()
         {
             //ToListAsync in alti kirmizili cizili geliyor sa o zaman(using Microsoft.EntityFrameworkCore; bunu eklememisizdir), ToList problem olmadan gelyiorsa bu da zaten System.Linq den geldgi icin sorun olmaz..
-            return await _dbContext.Products.ToListAsync();
+         //   return await _dbContext.Products.ToListAsync();
+            return await _dbContext.Orders.ToListAsync();
         }
 
 
