@@ -18,9 +18,55 @@ using CollegaApp.Configurations;
 using CollegaApp.Data;
 using CollegaApp.Data.Repostory;
 using CollegaApp.MyLogging;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    //Mesela burda AddPolicy yerne AddDefaultPolicy secenegini de kullanablirz..eger oyle uygun ise..Ama AddPolicy kullaniyorsa named policy eklemek istiyruz demektir
+    // options.AddPolicy(name: MyAllowSpecificOrigins,
+    //Direk string i de yazabilirz
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            //policy.WithOrigins("http://example.com", "http://www.contoso.com");
+            //How to allow all the header, all the origins and all the methods... 
+            //policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            //AllowAnyMethod=>get,post,put,delete,options...
+            //Headers can be user agent,content type, content language
+            //Origins(https(schema)+domain withe extension(www.example.com)+port number(443)
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();//=>allows all origins
+
+        });
+
+    //options.AddPolicy("AllowAll", policy =>
+    //{
+    //    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    //});
+
+    options.AddPolicy("AllowOnlyLocalhost", policy =>
+    {
+        // policy.WithOrigins("https://test.website.com");
+        policy.WithOrigins("https://test.website.com").WithHeaders("Accept", "sdf", "").WithMethods("GET", "POST");//Eger ozelliikle header, method vs de vermek istersek, bu sekilde verebilriz
+    });
+
+    options.AddPolicy("OnlyGoogleApplications", policy =>
+    {
+        policy.WithOrigins("https://google.com", " http://gmail.com", "http://drive.google.com");
+    });
+
+    options.AddPolicy("AllowOnlyMicrosoft", policy =>
+    {
+        policy.WithOrigins("http://outlook.com", "http://microsoft.com", "http://onedrive.com");
+    });
+});
+
+
+
 builder.Logging.ClearProviders();//log4Net i kullanmadan once inbuild loglari temizliyoruz ki sadece log4Net i kullandigmzdan emin olmak icin
 //Eklenilen Log4Net nuget paketini bu sekilde register ediyoruz
 builder.Logging.AddLog4Net();
@@ -75,7 +121,30 @@ builder.Services.AddAutoMapper(cfg =>
 
 }, typeof(AutoMapperConfig));
 
-
+var secretKey = Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("JWTSecret"));
+//JWT Authentication Configuration
+builder.Services.AddAuthentication(options =>
+{
+    //default authentication schema yi set ediyoruz
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    // options.RequireHttpsMetadata = false;//Production env. da hicbir zaman bu false yapilmaz dikkat et, bunu false yaparsak gidip prod env http de calisir https yerine.Bunu https ile ilgili problm yasiyorsak development ortaminda o zamn ekleyebilirz
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        //Ne validate etmek isityoruz 
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        
+    };
+});
+//AddJwtBearer NAMED YA DA DEFAULT JWTBEARER EKLYEBILIRZ
+//Adding JWT IS DONE NOW...
+//OUR WEB APP IS CONFIGURED WITH JWT...
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -86,9 +155,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors();
 app.UseAuthorization();
 
 app.MapControllers();//Burada controller'ları route'lara eşliyoruz.Eger biz Controller icreisinde, route lari belirtmezsek ve birden fazla ornegin HttpGet methodu varsa, hata aliriz,cunku route 'lar carpisir, ve hangi methodun cagrilacagini burasi bilemez...ve hata verir.Iste burada MapControllers() methodu ile bu route'lari esliyoruz...Burasi request uzerinden route islemi ile dogrudan hangi methodun cagrilacagini biliyor...ama route attributeunu ve HttpGet gibi attribute leri birden fazla kullanirsak onlari spesifik isimlerini de vermeliyiz ki burasi karisikligi cozebilsin...
+
+
+app.MapGet("/", () =>
+{
+    return builder.Configuration.GetValue<string>("JWTSecret");
+});
 
 app.Run();

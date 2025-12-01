@@ -13,6 +13,11 @@ namespace CollegaApp.Data.Config
 
             //primary key atamasi yapalim bu tablo iciin
             builder.HasKey(x => x.Id);//Hatirlayalim, Student modelimiz veya entitymizde [Key] tanimlamasi ile yapmistik(Data-annotation ile) bunu artik orda yapmamiza gerek yok burda yaptigimiz zaman
+            //builder.HasKey(x => x.Id);Student tablosunun birincil anahtarını (PRIMARY KEY) Id kolonu yapar.
+            //Aslında EF Core konvansiyonla Id veya StudentId’yi zaten PK kabul eder. Yani bu satır zorunlu değil, ama açıkça belirtmek istersen yazılır.
+            //SQL Server’da Id kolonunu IDENTITY(1,1) (otomatik artan) yapar ve EF’ye ValueGeneratedOnAdd (değer veritabanında ekleme sırasında üretilecek) bilgisini verir.Insert’te Id’yi sen set etmezsin, DB 1,2,3… diye doldurur; EF de ekleme sonrası değeri geri okur.İsteğe bağlı ayar: Başlangıç ve artış adımını verebilirsin:
+
+            //builder.Property(x => x.Id).UseIdentityColumn();
             builder.Property(x => x.Id).UseIdentityColumn();//Id kolonumuz artik Identtiy columndur yine biz bunu da Student entity veya modelinde attribute ile data-annotation ile yapmistik burda yaptigimz icin orda ona da gerek kalmamis oluyor([DatabaseGenerated(DatabaseGeneratedOption.Identity)])
             //Evet, UseIdentityColumn() pratikte [DatabaseGenerated(DatabaseGeneratedOption.Identity)] ile aynı davranışı (auto-increment) sağlar—hatta SQL Server için daha net.
 

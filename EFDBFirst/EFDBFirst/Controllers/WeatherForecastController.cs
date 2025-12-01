@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EFDBFirst.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [EnableCors(PolicyName="OnlyGoogleApplications")]
+    //SAdece bu controller bu cors-policy yi takip eder digerleri ise Program.cs de app.UseCors(); seklinde ise default policy yi takip eder ama burda paramtre icerisinde named policy lerden biri yazilmi ise app.UseCors("AllowAll"); gibi ise o zamn AlloAll ismindki policy yi takp eder gerisi
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[]

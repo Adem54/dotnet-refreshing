@@ -1,0 +1,16 @@
+2025-11-20 00:10:50,803  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+CREATE TABLE [Departments] (
+    [Id] int NOT NULL IDENTITY,
+    [DepartmentName] nvarchar(200) NOT NULL,
+    [Description] nvarchar(500) NULL,
+    CONSTRAINT [PK_Departments] PRIMARY KEY ([Id])
+);
+ 2025-11-20 00:10:50,859  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (49ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'DepartmentName', N'Description') AND [object_id] = OBJECT_ID(N'[Departments]'))
+    SET IDENTITY_INSERT [Departments] ON;
+INSERT INTO [Departments] ([Id], [DepartmentName], [Description])
+VALUES (1, N'ECE', N'ECE Department'),
+(2, N'CSE', N'ECE Department');
+IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'DepartmentName', N'Description') AND [object_id] = OBJECT_ID(N'[Departments]'))
+    SET IDENTITY_INSERT [Departments] OFF;
+ 

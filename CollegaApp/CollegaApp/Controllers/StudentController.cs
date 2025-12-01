@@ -5,6 +5,7 @@ using CollegaApp.Dtos;
 using CollegaApp.Migrations;
 using CollegaApp.MyLogging;
 using log4net.Util.TypeConverters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +13,10 @@ using System.Net;
 
 namespace CollegaApp.Controllers
 {
-     [ApiController] //Bu sınıfın bir API denetleyicisi olduğunu belirtir. Yani, ornegin 400 hatasi gibi otomatik davranislar ekler.
+    [ApiController] //Bu sınıfın bir API denetleyicisi olduğunu belirtir. Yani, ornegin 400 hatasi gibi otomatik davranislar ekler.
     [Route("api/[controller]")] //yazdığında, [controller] sınıf adından “Controller” ekini atıp kalanını koyar.Ornegin StudentController ise api/Student olur veya StudentCourseController ise api/StudentCourse olur...
     //[Route("api/[controller]/[action]")] action da bu controllerdaki method ismini de dinamik bir sekilde eklemeyi saglar
+    [Authorize(Roles ="Superadmin,Admin")]
     public class StudentController : ControllerBase//ControllerBase sayesinde IActionResult gibi tipleri kullanabiliriz.
     {
         private readonly ILogger<StudentController> _logger;
@@ -35,6 +37,7 @@ namespace CollegaApp.Controllers
         //[HttpGet][Route("All")]//https://localhost:7014/api/Student/All
         [HttpGet]
         [Route("All", Name = "GetAllStudents")]
+        //[AllowAnonymous]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetAll()
         {
             _logger.LogInformation("GetAll Students method is called");
