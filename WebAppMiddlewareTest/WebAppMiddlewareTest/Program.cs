@@ -97,13 +97,14 @@ app.Run();
 /*
  
        Content root path: C:\Users\Hp35\Desktop\Projects\Dotnet\dotnet-refreshing\WebAppMiddlewareTest\WebAppMiddlewareTest
+st
 EXC - REQUEST asaması
 M1 - REQUEST asaması
-  Path: /swagger
+  Path: /WeatherForecast
   M2 - REQUEST asaması
     M3 - REQUEST asaması
       AFTER ROUTING - REQUEST asaması
-      Seçilen endpoint:
+      Seçilen endpoint: WebAppMiddlewareTest.Controllers.WeatherForecastController.Get (WebAppMiddlewareTest)
       AFTER ROUTING - RESPONSE asaması
     M3 - RESPONSE asaması
   M2 - RESPONSE asaması
