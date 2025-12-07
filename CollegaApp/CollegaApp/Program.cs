@@ -40,7 +40,6 @@ builder.Services.AddCors(options =>
             //Headers can be user agent,content type, content language
             //Origins(https(schema)+domain withe extension(www.example.com)+port number(443)
             policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();//=>allows all origins
-
         });
 
     //options.AddPolicy("AllowAll", policy =>
@@ -121,7 +120,8 @@ builder.Services.AddAutoMapper(cfg =>
 
 }, typeof(AutoMapperConfig));
 
-var secretKey = Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("JWTSecret"));
+//var secretKey = Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("JWTSecret") ?? "");
+var secretKey = Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JWTSecret") ?? "");
 //JWT Authentication Configuration
 builder.Services.AddAuthentication(options =>
 {
@@ -155,6 +155,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseCors();
 app.UseAuthorization();
 
