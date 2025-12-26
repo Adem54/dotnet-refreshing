@@ -18,6 +18,11 @@ namespace CollegaApp.Data
 
         public DbSet<Department> Depertments { get; set; } = null!;
 
+        public DbSet<User> Users { get; set; } = null!;
+        public DbSet<Role> Roles { get; set; } = null!;
+        public DbSet<RolePrivilege> RolePrivileges { get; set; } = null!;
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //Studenttable-config 
@@ -27,6 +32,13 @@ namespace CollegaApp.Data
             modelBuilder.ApplyConfiguration(new DepartmentConfig());
 
             //Table-3
+            modelBuilder.ApplyConfiguration(new UserConfig());
+
+            //Table-4
+            modelBuilder.ApplyConfiguration(new RoleConfig());
+
+            //Table-5
+            modelBuilder.ApplyConfiguration(new RolePrivilegeConfig());
         }
 
     }

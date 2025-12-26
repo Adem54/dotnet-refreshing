@@ -95,7 +95,6 @@ app.MapControllers(); // Controller action'ları map'lenir
 app.Run();
 
 /*
- 
        Content root path: C:\Users\Hp35\Desktop\Projects\Dotnet\dotnet-refreshing\WebAppMiddlewareTest\WebAppMiddlewareTest
 st
 EXC - REQUEST asaması
@@ -110,6 +109,4 @@ M1 - REQUEST asaması
   M2 - RESPONSE asaması
 M1 - RESPONSE asaması
 EXC - RESPONSE asaması
-
- 
  */

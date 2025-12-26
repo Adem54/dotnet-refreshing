@@ -4,6 +4,7 @@ using CollegaApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CollegaApp.Migrations
 {
     [DbContext(typeof(CollegeDBContext))]
-    partial class CollegeDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251214231247_AddRolePrivilegeTable")]
+    partial class AddRolePrivilegeTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -126,8 +129,6 @@ namespace CollegaApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoleId");
-
                     b.ToTable("RolePrivileges", (string)null);
                 });
 
@@ -224,18 +225,6 @@ namespace CollegaApp.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("CollegaApp.Data.RolePrivilege", b =>
-                {
-                    b.HasOne("CollegaApp.Data.Role", "Role")
-                        .WithMany("RolePrivileges")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_RolePreview_Role");
-
-                    b.Navigation("Role");
-                });
-
             modelBuilder.Entity("CollegaApp.Data.Student", b =>
                 {
                     b.HasOne("CollegaApp.Data.Department", "Department")
@@ -249,11 +238,6 @@ namespace CollegaApp.Migrations
             modelBuilder.Entity("CollegaApp.Data.Department", b =>
                 {
                     b.Navigation("Students");
-                });
-
-            modelBuilder.Entity("CollegaApp.Data.Role", b =>
-                {
-                    b.Navigation("RolePrivileges");
                 });
 #pragma warning restore 612, 618
         }

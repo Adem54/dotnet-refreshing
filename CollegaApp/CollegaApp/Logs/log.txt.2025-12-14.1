@@ -1,0 +1,21 @@
+2025-12-14 23:48:55,065  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+ 2025-12-14 23:48:55,079  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ 2025-12-14 23:48:55,088  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+ 2025-12-14 23:48:55,099  INFO Microsoft.EntityFrameworkCore.Migrations.? [?] - MESSAGE: Applying migration '20251214224836_AddRoleTable'.
+ 2025-12-14 23:48:55,125  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+CREATE TABLE [Roles] (
+    [Id] int NOT NULL IDENTITY,
+    [RoleName] nvarchar(250) NOT NULL,
+    [Description] nvarchar(max) NOT NULL,
+    [IsActive] bit NOT NULL,
+    [IsDeleted] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [ModifiedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_Roles] PRIMARY KEY ([Id])
+);
+ 

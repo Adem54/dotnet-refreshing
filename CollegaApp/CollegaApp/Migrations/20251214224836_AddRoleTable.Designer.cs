@@ -4,6 +4,7 @@ using CollegaApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CollegaApp.Migrations
 {
     [DbContext(typeof(CollegeDBContext))]
-    partial class CollegeDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251214224836_AddRoleTable")]
+    partial class AddRoleTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,45 +93,6 @@ namespace CollegaApp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles", (string)null);
-                });
-
-            modelBuilder.Entity("CollegaApp.Data.RolePrivilege", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RolePrivilegeName")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("RolePrivileges", (string)null);
                 });
 
             modelBuilder.Entity("CollegaApp.Data.Student", b =>
@@ -224,18 +188,6 @@ namespace CollegaApp.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("CollegaApp.Data.RolePrivilege", b =>
-                {
-                    b.HasOne("CollegaApp.Data.Role", "Role")
-                        .WithMany("RolePrivileges")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_RolePreview_Role");
-
-                    b.Navigation("Role");
-                });
-
             modelBuilder.Entity("CollegaApp.Data.Student", b =>
                 {
                     b.HasOne("CollegaApp.Data.Department", "Department")
@@ -249,11 +201,6 @@ namespace CollegaApp.Migrations
             modelBuilder.Entity("CollegaApp.Data.Department", b =>
                 {
                     b.Navigation("Students");
-                });
-
-            modelBuilder.Entity("CollegaApp.Data.Role", b =>
-                {
-                    b.Navigation("RolePrivileges");
                 });
 #pragma warning restore 612, 618
         }

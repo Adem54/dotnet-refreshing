@@ -3,6 +3,7 @@ using CollegaApp.Data;
 using CollegaApp.Data.Repostory;
 using CollegaApp.Dtos;
 using CollegaApp.Migrations;
+using CollegaApp.Models;
 using CollegaApp.MyLogging;
 using log4net.Util.TypeConverters;
 using Microsoft.AspNetCore.Authorization;
@@ -16,21 +17,25 @@ namespace CollegaApp.Controllers
     [ApiController] //Bu sınıfın bir API denetleyicisi olduğunu belirtir. Yani, ornegin 400 hatasi gibi otomatik davranislar ekler.
     [Route("api/[controller]")] //yazdığında, [controller] sınıf adından “Controller” ekini atıp kalanını koyar.Ornegin StudentController ise api/Student olur veya StudentCourseController ise api/StudentCourse olur...
     //[Route("api/[controller]/[action]")] action da bu controllerdaki method ismini de dinamik bir sekilde eklemeyi saglar
-    [Authorize(Roles ="Superadmin,Admin")]
+    [Authorize(AuthenticationSchemes = "LoginForMicrosoftUsers",Roles ="Superadmin,Admin")]
     public class StudentController : ControllerBase//ControllerBase sayesinde IActionResult gibi tipleri kullanabiliriz.
     {
         private readonly ILogger<StudentController> _logger;
         private readonly IMapper _mapper;
         //private readonly IStudentRepostory _studentRepostory;
-      //  private readonly IEntityRepostory<Student> _studentRepostory;
-        private readonly IStudentRepostory _studentRepostory;
+        private readonly IEntityRepostory<Student> _studentRepostory;
+        //private readonly IStudentRepostory _studentRepostory;
         //IEntityRepostory we are using application level repostory pattern..not studentlevel.
 
-        public StudentController(ILogger<StudentController> logger, CollegeDBContext dbContext, IMapper mapper, IStudentRepostory studentRepostory)
+        
+        //Yine bu APIResponse..readonly olmayacak..cunku modify etmemiz gerekecek...controller icindeki action larin icinde
+
+        public StudentController(ILogger<StudentController> logger, CollegeDBContext dbContext, IMapper mapper, IEntityRepostory<Student> studentRepostory)
         {
             _logger = logger;
             _mapper = mapper;
             _studentRepostory = studentRepostory;
+           
         }
 
         //[HttpGet("GetStudents")] //HTTP GET isteği için bu metodu kullanır.//https://localhost:7014/api/Student/GetStudents
@@ -38,9 +43,10 @@ namespace CollegaApp.Controllers
         [HttpGet]
         [Route("All", Name = "GetAllStudents")]
         //[AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<StudentDto>>> GetAll()
+       // public async Task<ActionResult<IEnumerable<StudentDto>>> GetAll()
+        public async Task<ActionResult<APIResponse>> GetAll()
         {
-            _logger.LogInformation("GetAll Students method is called");
+
             //return _dbContext.Students;//Direk Database deki data yi donmeyiz..1.security icin onerilmez, 2.data transfrom objects leri kullaniriz request-response larda data olarak..
             /*  return await _dbContext.Students.AsNoTracking().Select(s=>new StudentDto()
               {
@@ -53,11 +59,31 @@ namespace CollegaApp.Controllers
               }).ToListAsync(); */
 
             //var students = await _dbContext.Students.ToListAsync();
-            var students = await _studentRepostory.GetAllAsync();
-            var studentDTOData = _mapper.Map<List<StudentDto>>(students);
-            //destination StudentDto, source is students..This is how we can auomatically transform, or copy from entity object to dto object
             //students is List, StudentDto is single class..
-            return Ok(studentDTOData);
+            //  return Ok(studentDTOData);
+            //common _apiResponse u kullanarak response dondurecek olursak
+
+            var _apiResponse = new APIResponse();
+            try
+            {
+                _logger.LogInformation("GetAll Students method is called");
+                var students = await _studentRepostory.GetAllAsync();
+                var studentDTOData = _mapper.Map<List<StudentDto>>(students);
+                //destination StudentDto, source is students..This is how we can auomatically transform, or copy from entity object to dto object
+                _apiResponse.Data = studentDTOData;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in GetAll students endpoint");
+                return _apiResponse;
+            }
 
             //var result = _mapper.Map<List<StudentDto>>(students);
             //Ya kendi helper-extension metodlarimizla .ToStudentDto...deriz ya da direk manuel olarak burda yapariz..yada AutoMapper da kullanabiliriz..
@@ -108,24 +134,21 @@ namespace CollegaApp.Controllers
         [HttpGet]
         [Route("GetStudent/{studentId:int?}")] //https://localhost:7014/api/Student/GetStudent/1  veya https://localhost:7014/api/Student/GetStudent/1
         // public Student? Get(int? studentId)
-        public async Task<ActionResult<StudentDto?>> Get([FromRoute(Name = "studentId")] int id)
+      //  public async Task<ActionResult<StudentDto?>> Get([FromRoute(Name = "studentId")] int id)
+        public async Task<ActionResult<APIResponse>> Get([FromRoute(Name = "studentId")] int id)
         {
-            _logger.LogInformation(" Get Student by ID method is called");
+            
             //Student? student = await _dbContext.Students.FindAsync(id);//Student?
             /*Student? student = await _dbContext.Students.AsNoTracking().FirstOrDefaultAsync(s=>s.Id == id );*///Student?
 
            // Student? student = await _studentRepostory.GetByIdAsync(id);
-            Student? student = await _studentRepostory.GetAsync(s=>s.Id == id);
+         
 
             //Student? student2 = _dbContext.Students.FirstOrDefault(s=>s.Id == id);
             //Find(id) imzasi bu sekildedir IQUERYABLE da, yani db de yapilan sorguda, ama Find(IPredicate) olarak calisir ram tarafinda dotnette...Find(s=>s.Id==id) seklinde... 
             //FirsOrDefault=>Once match olan first dataya bakar bulursa onu alir devam eder, bulamazsa Default olarak null verir..
 
-            if (student is null)
-            {
-                _logger.LogWarning("Not found, there is no student");
-                return NotFound();
-            }
+            
             //var studentDto = new StudentDto()
             //{
             //    Id = student.Id,
@@ -134,31 +157,45 @@ namespace CollegaApp.Controllers
             //    Address = student.Address,
             //    DOB = student.DOB.ToShortDateString()
             //};
-            var studentDto = _mapper.Map<StudentDto>(student);
-            //return Dto not entity
-            return student == null ? NotFound() : studentDto;
+
+
+            var _apiResponse = new APIResponse();
+            try
+            {
+                _logger.LogInformation(" Get Student by ID method is called");
+                Student? student = await _studentRepostory.GetAsync(s => s.Id == id);
+                if (student is null)
+                {
+                    _logger.LogWarning("Not found, there is no student");
+                    return NotFound();
+                }
+                var studentDto = _mapper.Map<StudentDto>(student);
+                //return Dto not entity
+
+                _apiResponse.Data = studentDto;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+             
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in Get students endpoint");
+                return _apiResponse;
+            }
         }
         
         [HttpGet]
         // [Route("{id:int}", Name = "GetStudentById")]
         //  [Route("{id:min(1):max(100)}", Name = "GetStudentById")]
         [Route("{id:range(1,100)}", Name = "GetStudentById")]
-        public async Task<ActionResult<StudentDto>> GetStudentById(int id)
+       // public async Task<ActionResult<StudentDto>> GetStudentById(int id)
+        public async Task<ActionResult<APIResponse>> GetStudentById(int id)
         {
-            if(id <= 0)
-            {
-                _logger.LogWarning($"Bad request..{id} must be greater than 0 and int");
-                return BadRequest();
-            }
-
-          //  Student? student = await _studentRepostory.GetByIdAsync(id);
-            Student? student = await _studentRepostory.GetAsync(s=>s.Id == id);
-            if (student is null)
-            {
-                _logger.LogWarning("Not found, there is no student");
-                return NotFound();
-            }
-
             //var studentDto = new StudentDto()
             //{
             //    Id = student.Id,
@@ -167,30 +204,50 @@ namespace CollegaApp.Controllers
             //    Address = student.Address,
             //    DOB = student.DOB.ToShortDateString()
             //};
+            var _apiResponse = new APIResponse();
+            try
+            {
+                if (id <= 0)
+                {
+                    _logger.LogWarning($"Bad request..{id} must be greater than 0 and int");
+                    return BadRequest();
+                }
 
-            var studentDto = _mapper.Map<StudentDto>(student);
-            return Ok(studentDto);
+                //  Student? student = await _studentRepostory.GetByIdAsync(id);
+                Student? student = await _studentRepostory.GetAsync(s => s.Id == id);
+                if (student is null)
+                {
+                    _logger.LogWarning("Not found, there is no student");
+                    return NotFound();
+                }
+                var studentDto = _mapper.Map<StudentDto>(student);
+                _apiResponse.Data = studentDto;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in Get students endpoint");
+                return _apiResponse;
+            }
         }
         //alpahabetik karakterler icin :alpha...Bunlara route constraints denir...
       //[HttpGet("by-name/{name:alpha}", Name = "GetStudentByName")]
         [HttpGet("by-name/", Name = "GetStudentByName")]
 
-        public async Task<ActionResult<StudentDto?>> GetStudentByName(string name)
+        public async Task<ActionResult<APIResponse?>> GetStudentByName(string name)
         {
-            //Burda name null veya empty gelebilir, bunu kontrol edelim.....ONEMLI...
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return BadRequest("Name cannot  be null or empty");
-            }
+
             //ActionResult<T> kullanarak ister direk T tipinde data dönebiliriz, istersek de IActionResult gibi davranabiliriz...
             //return CollegeRepostory.Students.FirstOrDefault(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             //Artik parametre de predcate-lambda(arrow-func) olacak..
-           // Student? student = await _studentRepostory.GetByNameAsync(name); bu sadece Student e ozel repostory yazdigmzda boyle idi ama artik tum, entiytlere yonelik bir repostry i olusturduk
-            Student? student = await _studentRepostory.GetAsync(s => EF.Functions.Collate(s.Name, "Norwegian_100_CI_AS") == name);
-            if (student is null)
-            {
-                return NotFound($"{name} is not found!");
-            }
+            // Student? student = await _studentRepostory.GetByNameAsync(name); bu sadece Student e ozel repostory yazdigmzda boyle idi ama artik tum, entiytlere yonelik bir repostry i olusturduk
+
 
             //var studentDto = new StudentDto()
             //{
@@ -200,22 +257,49 @@ namespace CollegaApp.Controllers
             //    Address = student.Address,
             //    DOB = student.DOB.ToShortDateString()
             //};
-            var studentDto = _mapper.Map<StudentDto>(student);
-            return Ok(studentDto);
-        }
+
+            var _apiResponse = new APIResponse();
+            try
+            {
+                //Burda name null veya empty gelebilir, bunu kontrol edelim.....ONEMLI...
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    return BadRequest("Name cannot  be null or empty");
+                }
+
+                Student? student = await _studentRepostory.GetAsync(s => EF.Functions.Collate(s.Name, "Norwegian_100_CI_AS") == name);
+                if (student is null)
+                {
+                    return NotFound($"{name} is not found!");
+                }
+
+                var studentDto = _mapper.Map<StudentDto>(student);
+
+                _apiResponse.Data = studentDto;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                
+                return Ok(_apiResponse);
+
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in Get students endpoint");
+                return _apiResponse;
+            }
+    }
 
         [HttpGet("by-email/{email}", Name = "GetStudentByEmail")]//GetStudentByName bu isim bu route a ozel isimdir
         // HttpVerb attribute ile de route u tanimlayabilirz, istersek de Route attribute ile de tanimlayabiliriz...
         //[Route("GetByName/{name}", Name = "GetStudentByName")]
-        public async Task<ActionResult<Student?>> GetStudentByEmail(string email)
+        public async Task<ActionResult<APIResponse?>> GetStudentByEmail(string email)
         {
-           // Student? student = await _studentRepostory.GetByEmailAsync(email);
-            Student? student = await _studentRepostory.GetAsync(s=>s.Email== email);
+            // Student? student = await _studentRepostory.GetByEmailAsync(email);
 
-            if (student is null)
-            {
-                return NotFound($"{email} is not found!");
-            }
             //var studentDto = new StudentDto()
             //{
             //    Id = student.Id,
@@ -224,9 +308,33 @@ namespace CollegaApp.Controllers
             //    Address = student.Address,
             //    DOB = student.DOB.ToShortDateString()
             //};
+            var _apiResponse = new APIResponse();
+            try
+            {
+                Student? student = await _studentRepostory.GetAsync(s => s.Email == email);
 
-            var studentDto = _mapper.Map<StudentDto>(student);
-            return Ok(studentDto);
+                if (student is null)
+                {
+                    return NotFound($"{email} is not found!");
+                }
+
+                var studentDto = _mapper.Map<StudentDto>(student);
+
+                _apiResponse.Data = studentDto;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                
+                return Ok(_apiResponse);
+            }
+             catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in Get students endpoint");
+                return _apiResponse;
+            }
         }
 
         [HttpGet("save")]//Buraya hicbirsey yazmassak hata aliriz..
@@ -252,19 +360,9 @@ namespace CollegaApp.Controllers
         //[ProducesResponseType(404)]//Bu endpoint 404 durum kodu dönebilir
         [ProducesResponseType(StatusCodes.Status404NotFound)]//Bu endpoint 404 durum kodu dönebilir
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]//Bu endpoint 500 durum kodu dönebilir
-        public async Task<ActionResult<StudentDto>> GetMyStudent(int id)
+        public async Task<ActionResult<APIResponse>> GetMyStudent(int id)
         {
-            if (id <= 0)
-            {
-                return BadRequest("Invalid ID");
-            }
-          //  var student = await _studentRepostory.GetByIdAsync(id);
-            var student = await _studentRepostory.GetAsync(s=>s.Id == id);
-            if (student == null)
-            {
-                _logger.LogError($"There is no student exist with this id: {id}");
-                return NotFound();
-            }
+
             //response data as DTO ALWAYS
             //StudentDto studentDto = new StudentDto {
             //    Id = student.Id,
@@ -273,25 +371,47 @@ namespace CollegaApp.Controllers
             //    Address = student.Address,
             //    DOB = student.DOB.ToShortDateString()
             //};
-            var studentDto = _mapper.Map<StudentDto>(student);
-            return Ok(studentDto);
+
+            var _apiResponse = new APIResponse();
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest("Invalid ID");
+                }
+                //  var student = await _studentRepostory.GetByIdAsync(id);
+                var student = await _studentRepostory.GetAsync(s => s.Id == id);
+                if (student == null)
+                {
+                    _logger.LogError($"There is no student exist with this id: {id}");
+                    return NotFound();
+                }
+
+                var studentDto = _mapper.Map<StudentDto>(student);
+                _apiResponse.Data = studentDto;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in Get students endpoint");
+                return _apiResponse;
+            }
         }
+
         [HttpPost("create", Name = "SaveStudent") ]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<StudentDto>> Create([FromBody] CreateStudentDto studentDto)
+        public async Task<ActionResult<APIResponse>> Create([FromBody] CreateStudentDto studentDto)
         {
-           
-            if (studentDto is null) return BadRequest("Student object can not be null");
-            //Name, Email, Address 
-            if(string.IsNullOrWhiteSpace(studentDto.Name) ||
-                (studentDto.Name.Length <= 3) || !(studentDto.Email.Contains("@")) ||
-                string.IsNullOrWhiteSpace(studentDto.Email) ||
-                string.IsNullOrWhiteSpace(studentDto.Address))
-            {
-                return BadRequest("Name, Email and Address are required fields");
-            }
+
 
             //Manuel conversion from dto to entity
             //DIKKKAT ENTITY EKLEMESI OLACAGI ICIN BURDA ENTIYTCLASS I  KULLANILMALIDIR
@@ -304,34 +424,90 @@ namespace CollegaApp.Controllers
             //    DOB = studentDto.AdmissionDate
             //};
 
-            var student = _mapper.Map<Student>(studentDto);
-            var createdStudent = await _studentRepostory.CreateAsync(student);
+
             //Normally here we will save the student entity to database using async-await and entity framework..AYRICA DA DIKKAT EDELIM...KI BURDA SAVECHANGES GERCEKLESTGINDE..ARTIK student direk DB DE KAYDETTIT DATA ILE DOLDUREACK student i yani ID de yine doldurulmus olacak....
 
             //Return the created student dto with 201 status code
-            StudentDto responseDto = new StudentDto { Id = createdStudent.Id, StudentName = createdStudent.Name, Email = createdStudent.Email, Address = createdStudent.Address };
+
 
             //1.parameter route u hangi action ın kullanacagiz onu belirtiyoruz, 2.parametrede ise o action a gonderilecek route parametrelerini veriyoruz..yani GetStudentById action ına id parametresini gonderiyoruz
             //"GetStudentById", new { id=responseDto.Id  } bu iki data, link olarak newly created resource un url sini belirtir...
             //newly created studentDto yu donecegiz 3.parametrede de...
-            return CreatedAtRoute("GetStudentById", new { id= responseDto.Id  }, responseDto);
+
+
             // Status-201, DATAYI RESPONSE EDIYOR ARDINDAN DA RESPOSNE HEADERS DA location: olarak bu url li verecektir...  https://localhost:7014/api/Student/5 , 
+
+            var _apiResponse = new APIResponse();
+            try
+            {
+
+
+                if (studentDto is null) return BadRequest("Student object can not be null");
+                //Name, Email, Address 
+                if (string.IsNullOrWhiteSpace(studentDto.Name) ||
+                    (studentDto.Name.Length <= 3) || !(studentDto.Email.Contains("@")) ||
+                    string.IsNullOrWhiteSpace(studentDto.Email) ||
+                    string.IsNullOrWhiteSpace(studentDto.Address))
+                {
+                    return BadRequest("Name, Email and Address are required fields");
+                }
+                var student = _mapper.Map<Student>(studentDto);
+                var createdStudent = await _studentRepostory.CreateAsync(student);
+                StudentDto responseDto = new StudentDto { Id = createdStudent.Id, StudentName = createdStudent.Name, Email = createdStudent.Email, Address = createdStudent.Address };
+
+                _apiResponse.Data = responseDto;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                
+                return CreatedAtRoute("GetStudentById", new { id = responseDto.Id }, _apiResponse);
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in Get students endpoint");
+                return _apiResponse;
+            }
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<bool>> Delete(int id)
+       // public async Task<ActionResult<bool>> Delete(int id)
+        public async Task<ActionResult<APIResponse>> Delete(int id)
         {
-            if (id <= 0) return BadRequest($"{id} is either 0 or less");
-          //  var studentToDelete = await _studentRepostory.GetByIdAsync(id);
-            var studentToDelete = await _studentRepostory.GetAsync(s=>s.Id == id);
-            if (studentToDelete is null)
+
+            var _apiResponse = new APIResponse();
+            try
             {
-                //return false;
-               return NotFound($"No student found with id: {id}");
+                if (id <= 0) return BadRequest($"{id} is either 0 or less");
+                //  var studentToDelete = await _studentRepostory.GetByIdAsync(id);
+                var studentToDelete = await _studentRepostory.GetAsync(s => s.Id == id);
+                if (studentToDelete is null)
+                {
+                    //return false;
+                    return NotFound($"No student found with id: {id}");
+                }
+                await _studentRepostory.DeleteAsync(studentToDelete);
+                //_dbContext.Students.Where(s => s.Id == id).ExecuteDelete(); bu da tek basina delete islemine alternatif bu direk db den siler bu sekilde
+
+
+                _apiResponse.Data = true;//dikkat burda data true olacak...evet..bunu bilmek onemli..
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+               
+                return Ok(_apiResponse);
+
             }
-            await _studentRepostory.DeleteAsync(studentToDelete);
-            //_dbContext.Students.Where(s => s.Id == id).ExecuteDelete(); bu da tek basina delete islemine alternatif bu direk db den siler bu sekilde
-            return true;
+            catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in Delete students endpoint");
+                return _apiResponse;
+            }
         }
 
         //[HttpPut("update/{id:int}", Name = "ModifyStudent")] //FromRoute, 
@@ -345,10 +521,11 @@ namespace CollegaApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<StudentDto>> Update([FromRoute]  int id, UpdateStudentDto updateStudentDto)
+       // public async Task<ActionResult<StudentDto>> Update([FromRoute]  int id, UpdateStudentDto updateStudentDto)
+        public async Task<ActionResult<APIResponse>> Update([FromRoute]  int id, UpdateStudentDto updateStudentDto)
         {
             //1.Validation..gonderilen obje dto null mi? 
-            if (updateStudentDto is null)return BadRequest("Student object can not be null");
+
             //updateStudentDto icerisindeki Name,Email, Address valid olma durumunu biz Data Annotations ile belirttik...Ama [ApiController] attribute unu controller classina eklemezsek, burda manuel olarak validation yapmaliyiz...ModelState.IsValid kontrolu nu ControllerBase yapar arkada ve ModelState valid degilse bunu ApiController farkeder ve otomatik 400 badrequest doner...
             //id yi updateStudentDto icerisinde donenlerde olabiliyor..bu da farkli bir yaklasimdir
             //2.Validatio i yaptik sonra, gonderilen id veritabaninda var mi? Bul, yokse NotFound don 
@@ -377,30 +554,57 @@ namespace CollegaApp.Controllers
             //    Email = updateStudentDto.Email,
             //    DOB = updateStudentDto.DOB
             //};
-          //  Student? existingStudent = await _studentRepostory.GetByIdAsync(id);
-            Student? existingStudent = await _studentRepostory.GetAsync(s=>s.Id == id);
+            //  Student? existingStudent = await _studentRepostory.GetByIdAsync(id);
 
-            if (existingStudent is null) return NotFound($"{id} is not found");
-             _mapper.Map(updateStudentDto, existingStudent);
-
-            // _dbContext.Students.Update(newRecord);
-            //await _dbContext.SaveChangesAsync();
-            await _studentRepostory.UpdateAsync(existingStudent);
 
             /*
              'Student' cannot be tracked because another instance with the same key value for {'Id'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the 
              */
 
-            var studentDto = new StudentDto
-            {
-                StudentName = existingStudent.Name,
-                Email = existingStudent.Email, 
-                Address = existingStudent.Address,
-                DOB = existingStudent.DOB.ToShortDateString()
-            }; 
+            var _apiResponse = new APIResponse();
 
-            // return NoContent();//204 No Content doneriz cunku update islemi basarili oldu ama geriye donecek data yok..Eger NoContent donerrsek o zaman ActionResult<StudentDto> degil de IActionResult kullanmaliyiz method signature da
-            return Ok(studentDto);
+            try
+            {
+                if (updateStudentDto is null) return BadRequest("Student object can not be null");
+                Student? existingStudent = await _studentRepostory.GetAsync(s => s.Id == id);
+
+                if (existingStudent is null) return NotFound($"{id} is not found");
+                _mapper.Map(updateStudentDto, existingStudent);
+
+                // _dbContext.Students.Update(newRecord);
+                //await _dbContext.SaveChangesAsync();
+                await _studentRepostory.UpdateAsync(existingStudent);
+
+
+                var studentDto = new StudentDto
+                {
+                    StudentName = existingStudent.Name,
+                    Email = existingStudent.Email,
+                    Address = existingStudent.Address,
+                    DOB = existingStudent.DOB.ToShortDateString()
+                };
+
+                // return NoContent();//204 No Content doneriz cunku update islemi basarili oldu ama geriye donecek data yok..Eger NoContent donerrsek o zaman ActionResult<StudentDto> degil de IActionResult kullanmaliyiz method signature da
+
+
+                _apiResponse.Data = studentDto;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                
+
+                return Ok(_apiResponse);
+
+            }
+             catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in Delete students endpoint");
+                return _apiResponse;
+            }
+
             /* update e alternatif olarak exstingStuden in tek tek Name,email,Address ini gelen updateStudentDto datasinin degerleri ile guncelleriz ki existingStudent db den cekecegimzdata..vede en son SAveChanges dersek o zaaman da direk veritabainda da artik updat dilmis olur...BU DA SU ANKI UPDATE ISLEMININ BIZRAZ DAHA ESKI VERSIYONU DIYEBLIRIZ..*/
         }
 
@@ -430,14 +634,11 @@ namespace CollegaApp.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
         //JsonPatchDocument sayesinde de partial update yapabiliriz ve bu sekilde UpdatePartialStudentDto kullanimina gerek kalmaz..
-        public async Task<ActionResult<StudentDto>> PartialUpdate([FromRoute] int id, [FromBody] JsonPatchDocument<StudentDto> patchDocument)
+        //public async Task<ActionResult<StudentDto>> PartialUpdate([FromRoute] int id, [FromBody] JsonPatchDocument<StudentDto> patchDocument)
+        public async Task<ActionResult<APIResponse>> PartialUpdate([FromRoute] int id, [FromBody] JsonPatchDocument<StudentDto> patchDocument)
         {
-
             //1.Validation gonderilen Dto null mu, id veritabaninda var mi?(id nin route constraint ile int olmasi saglandi..int olmazsa zaten actiona gelmez 400 badrequest doner)
-            if (patchDocument is null  || id <= 0 ) return BadRequest("Student object can not be null");
-          //  Student? existingStudent = await _studentRepostory.GetByIdAsync(id, true);
-            Student? existingStudent = await _studentRepostory.GetAsync(s=>s.Id == id, true);
-            if (existingStudent is null) return NotFound($"{id} is not found");
+
 
             //var studentDTO = new StudentDto
             //{
@@ -448,15 +649,7 @@ namespace CollegaApp.Controllers
 
             //};
 
-            //Efcore existingStudent i track ediyor...ve bizim bunu studentDto ya cevirmemiz existinDto nun track edilmeisni degistirmiyor o hala track ediliyor,
-            var studentDto = _mapper.Map<StudentDto>(existingStudent);
-            //Burda clienttan gelen tum degisiklkleri patchDocument ile studentDTO ya uyguluyoruz
-            patchDocument.ApplyTo(studentDto, ModelState);//if anything goes wrong during applying the patchDocument to studentDTO, the errors will be added to ModelState
-            //Bundan dolayi ModelState i kontrol etmeliyiz
-            if(!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+
             //Simdi studentDTO dan gelen degerlerle existingStudent entity sini update edelim
             //existingStudent.Name = studentDto.Name;
             //existingStudent.Email = studentDto.Email;
@@ -464,9 +657,7 @@ namespace CollegaApp.Controllers
             //existingStudent.DOB = Convert.ToDateTime(studentDto.DOB);//string date i DateTime a cevirmemiz gerekiyor
 
             //Biz boyle yaptik olmadi ama su anki calisan kod gibi kullaninca mapper i o zaman update gerceklesti...Yukarda existingStudent i biz AsNOTracking yaptik ve tracker e takip ettirmedigmz icin burda hata almadan, database de burasinin takip edilmesini ve update eedilmesni sagldik cunku id ler uzerinden takip yaptigi icin, 2 kez ayni id yi farkli db oprasynlarinda takip edemez...
-             existingStudent = _mapper.Map<Student>(studentDto);
-            //_dbContext.Students.Update(newStudent);
-            await _studentRepostory.UpdateAsync(existingStudent);
+
             // await _dbContext.SaveChangesAsync();
             //_mapper.Map(studentDto, existingStudent);
 
@@ -474,7 +665,42 @@ namespace CollegaApp.Controllers
             //.CurrentValues
             //.SetValues(patchDocument);
             // await _dbContext.SaveChangesAsync();
-            return NoContent();
+            //Burda birsey return etmiyoruz dolaysi ilede _apiResponse u burda kullanmaya gerek yok
+
+            var _apiResponse = new APIResponse();
+
+            try
+            {
+                if (patchDocument is null || id <= 0) return BadRequest("Student object can not be null");
+                //  Student? existingStudent = await _studentRepostory.GetByIdAsync(id, true);
+                Student? existingStudent = await _studentRepostory.GetAsync(s => s.Id == id, true);
+                if (existingStudent is null) return NotFound($"{id} is not found");
+
+                //Efcore existingStudent i track ediyor...ve bizim bunu studentDto ya cevirmemiz existinDto nun track edilmeisni degistirmiyor o hala track ediliyor,
+                var studentDto = _mapper.Map<StudentDto>(existingStudent);
+                //Burda clienttan gelen tum degisiklkleri patchDocument ile studentDTO ya uyguluyoruz
+                patchDocument.ApplyTo(studentDto, ModelState);//if anything goes wrong during applying the patchDocument to studentDTO, the errors will be added to ModelState
+                                                              //Bundan dolayi ModelState i kontrol etmeliyiz
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                existingStudent = _mapper.Map<Student>(studentDto);
+                //_dbContext.Students.Update(newStudent);
+                await _studentRepostory.UpdateAsync(existingStudent);
+
+                return NoContent();
+            }
+             catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                //burda genellikle loglamada yapariz...onemli..
+                _logger.LogInformation("There is an error in Delete students endpoint");
+                return _apiResponse;
+            }
         }
 
         /*

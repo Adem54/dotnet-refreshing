@@ -1,6 +1,14 @@
-2025-12-04 22:59:06,180  INFO Microsoft.Hosting.Lifetime.? [?] - MESSAGE: Now listening on: https://localhost:7014
- 2025-12-04 22:59:06,256  INFO Microsoft.Hosting.Lifetime.? [?] - MESSAGE: Now listening on: http://localhost:5028
- 2025-12-04 22:59:06,494  INFO Microsoft.Hosting.Lifetime.OnApplicationStarted [0] - MESSAGE: Application started. Press Ctrl+C to shut down.
- 2025-12-04 22:59:06,522  INFO Microsoft.Hosting.Lifetime.OnApplicationStarted [0] - MESSAGE: Hosting environment: Development
- 2025-12-04 22:59:06,531  INFO Microsoft.Hosting.Lifetime.Invoke [0] - MESSAGE: Content root path: C:\Users\Hp35\Desktop\Projects\Dotnet\dotnet-refreshing\CollegaApp\CollegaApp
+2025-12-15 00:49:07,722  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+ 2025-12-15 00:49:07,739  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ 2025-12-15 00:49:07,744  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+ 2025-12-15 00:49:07,755  INFO Microsoft.EntityFrameworkCore.Migrations.? [?] - MESSAGE: No migrations were applied. The database is already up to date.
+ 2025-12-15 00:49:07,758  INFO Microsoft.EntityFrameworkCore.Database.Command.? [?] - MESSAGE: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
  

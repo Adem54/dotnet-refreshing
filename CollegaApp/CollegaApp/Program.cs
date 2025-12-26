@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,8 +65,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-
 builder.Logging.ClearProviders();//log4Net i kullanmadan once inbuild loglari temizliyoruz ki sadece log4Net i kullandigmzdan emin olmak icin
 //Eklenilen Log4Net nuget paketini bu sekilde register ediyoruz
 builder.Logging.AddLog4Net();
@@ -75,7 +74,46 @@ builder.Logging.AddLog4Net();
 builder.Services.AddControllers().AddNewtonsoftJson();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+//Requirement  and definition...
+//builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        //Definition
+        Description = "JWT Authorization header using the bearer scheme. Enter Bearer [space] add your token in the text input. Example:  Bearer swerdasgfadsgads454554",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
+
+    });
+    //⚠️ Type = SecuritySchemeType.Http EKLEMEZSEN:
+    //Swagger bazen Authorize butonunu göstermez
+    //Requirements 
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
+        {
+
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Id = "Bearer",
+                    Type = ReferenceType.SecurityScheme
+                },
+                Scheme = "oauth2",//This is theglobal
+                Name = "Bearer",
+                In = ParameterLocation.Header,
+
+            },
+            new List<string>()
+        }
+    });
+
+});
 
 // Repository eşlemesi (ARAYÜZ -> SINIF)
 //builder.Services.AddScoped<IStudentRepostory, StudentRepostory>();
@@ -121,14 +159,25 @@ builder.Services.AddAutoMapper(cfg =>
 }, typeof(AutoMapperConfig));
 
 //var secretKey = Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("JWTSecret") ?? "");
-var secretKey = Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JWTSecret") ?? "");
+var secretKeyForGoogle = Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JWTSecretForGoogle") ?? "");
+var secretKeyForMicrosoft = Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JWTSecretForMicrosoft") ?? "");
+Console.WriteLine($"secretKeyForMicrosoft: {secretKeyForMicrosoft}");
+var secretKeyForLocal = Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JWTSecretForLocal") ?? "");
+string GoogleAudience = builder.Configuration.GetValue<string>("GoogleAudience") ?? "";
+string MicrosoftAudience = builder.Configuration.GetValue<string>("MicrosoftAudience") ?? "";
+string LocalAudience = builder.Configuration.GetValue<string>("LocalAudience") ?? "";
+string GoogleIssuer = builder.Configuration.GetValue<string>("GoogleIssuer") ?? "";
+string MicrosoftIssuer = builder.Configuration.GetValue<string>("MicrosoftIssuer") ?? "";
+string LocalIssuer = builder.Configuration.GetValue<string>("LocalIssuer") ?? "";
 //JWT Authentication Configuration
 builder.Services.AddAuthentication(options =>
 {
     //default authentication schema yi set ediyoruz
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
+    //JwtBearerDefaults.AuthenticationScheme; BU DEFAULT OLARAK 'Bearer' geliyor
+    //“Kimlik doğrulama yapmam gerektiğinde, adı ‘Bearer’ olan sistemi kullan.”
+}).AddJwtBearer("LoginForGoogleUsers", options =>
 {
     // options.RequireHttpsMetadata = false;//Production env. da hicbir zaman bu false yapilmaz dikkat et, bunu false yaparsak gidip prod env http de calisir https yerine.Bunu https ile ilgili problm yasiyorsak development ortaminda o zamn ekleyebilirz
     options.SaveToken = true;
@@ -136,16 +185,66 @@ builder.Services.AddAuthentication(options =>
     {
         //Ne validate etmek isityoruz 
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        
+        IssuerSigningKey = new SymmetricSecurityKey(secretKeyForGoogle),
+        // ValidateIssuer = false,//we are not validation issuer here, in order to validate, we change this true
+        ValidateIssuer = true,
+        //ValidateIssuer i true yaptiktan sonra simdi ValidIssuer atamamiz gerekiyor hemen onu da atariz.. 
+        ValidIssuer = GoogleIssuer,
+        //ValidateAudience = false,//we are not validation Audience here, in order to validate, we change this true
+        ValidateAudience = true,
+        //ValidateAudience yi true yaptiktan sonra, simdide ValidAudience atamamiz gerekiyor 
+        ValidAudience = GoogleAudience,
+
+    };
+}).AddJwtBearer("LoginForMicrosoftUsers", options =>
+{
+    // options.RequireHttpsMetadata = false;//Production env. da hicbir zaman bu false yapilmaz dikkat et, bunu false yaparsak gidip prod env http de calisir https yerine.Bunu https ile ilgili problm yasiyorsak development ortaminda o zamn ekleyebilirz
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        //Ne validate etmek isityoruz 
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(secretKeyForMicrosoft),
+       // ValidateIssuer = false,
+        ValidateIssuer = true,
+        ValidIssuer = MicrosoftIssuer,
+      //  ValidateAudience = false,
+        ValidateAudience = true,
+        ValidAudience = MicrosoftAudience,
+
+    };
+}).AddJwtBearer("LoginForLocalUsers", options => 
+{
+    // options.RequireHttpsMetadata = false;//Production env. da hicbir zaman bu false yapilmaz dikkat et, bunu false yaparsak gidip prod env http de calisir https yerine.Bunu https ile ilgili problm yasiyorsak development ortaminda o zamn ekleyebilirz
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        //Ne validate etmek isityoruz 
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(secretKeyForLocal),
+        //ValidateIssuer = false,
+        ValidateIssuer = true,
+        ValidIssuer = LocalIssuer,
+        //ValidateAudience = false,
+        ValidateAudience = true,
+        ValidAudience= LocalAudience,
     };
 });
 //AddJwtBearer NAMED YA DA DEFAULT JWTBEARER EKLYEBILIRZ
 //Adding JWT IS DONE NOW...
 //OUR WEB APP IS CONFIGURED WITH JWT...
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    Console.WriteLine("After auth log");
+
+    Console.WriteLine(context.User);
+    Console.WriteLine(context.User.Identity?.IsAuthenticated);
+
+    // ❌ BÜYÜK HATA:
+    await next();  //YOKSA SERVER BURADA KİLİTLENİR
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -156,6 +255,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
+
+
 app.UseCors();
 app.UseAuthorization();
 
